@@ -28,7 +28,7 @@ To do so, you will need to following environment variables :
   * ARM_CLIENT_SECRET=<cient secret>
   * ARM_TENANT_ID=<tenant id>
 
-See [Azure CLI Setup](#azure-cli) for full details.
+See [Azure CLI Setup](#setting-up-the-azure-cli-and-credentials) for full details.
 
 ## Dev/Deploy Environment Setup ##
 
