@@ -96,6 +96,7 @@ to the Azure SP account. (Refer to [Azure RBAC documentation](https://docs.micro
 
 # TODO and Works in Progress #
 
+- [ ] Setup Rexray so that you can attach Azure UMDs into the VMs.
 - [ ] Use one of the created Azure Blob Storage Accounts to store the terraform state files.
 - [ ] More documentation clean up.
 - [ ] Packer has not been touched from the original and likely does not work.
