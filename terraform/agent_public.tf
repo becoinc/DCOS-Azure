@@ -25,7 +25,11 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
   availability_set_id           = "${azurerm_availability_set.publicAgentVMAvailSet.id}"
   delete_os_disk_on_termination = true
   count                         = "${var.agent_public_count}"
-  depends_on                    = ["azurerm_virtual_machine_extension.master"]
+  depends_on                    = ["azurerm_virtual_machine.master"]
+
+  lifecycle {
+    ignore_changes  = ["admin_password"]
+  }
 
   connection {
     type         = "ssh"
@@ -39,8 +43,26 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
     bastion_private_key = "${file(var.bootstrap_private_key_path)}"
   }
 
-  lifecycle {
-    ignore_changes  = ["admin_password"]
+  # provisioners execute in order.
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /opt/dcos",
+      "sudo chown ${var.vm_user} /opt/dcos",
+      "sudo chmod 755 -R /opt/dcos"
+    ]
+  }
+
+  # Now the provisioning for DC/OS
+  provisioner "file" {
+    source      = "${path.module}/files/install.sh"
+    destination = "/opt/dcos/install.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod 755 /opt/dcos/install.sh",
+      "cd /opt/dcos && bash install.sh '172.16.0.8' 'slave_public'"
+    ]
   }
 
   storage_image_reference {
@@ -81,26 +103,5 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
   tags {
       environment = "${var.instance_name}"
   }
-
-}
-
-resource "azurerm_virtual_machine_extension" "dcosPublicAgentExtension" {
-  name                        = "installDCOSPublicAgent${format("%01d", count.index+1)}"
-  location                    = "${azurerm_resource_group.dcos.location}"
-  count                       = "${var.agent_private_count}"
-  depends_on                  = ["azurerm_virtual_machine.dcosPublicAgent"]
-  resource_group_name         = "${azurerm_resource_group.dcos.name}"
-  virtual_machine_name        = "dcosPublicAgent${count.index}"
-  publisher                   = "Microsoft.Azure.Extensions"
-  type                        = "CustomScript"
-  type_handler_version        = "2.0"
-  auto_upgrade_minor_version  = true
-
-  # The install script is now baked in using custom_data and cloud-init
-  settings = <<SETTINGS
-    {
-        "commandToExecute": "cd /opt/dcos && bash install.sh '172.16.0.8' 'slave_public'"
-    }
-SETTINGS
 
 }

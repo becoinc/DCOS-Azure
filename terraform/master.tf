@@ -26,10 +26,42 @@ resource "azurerm_virtual_machine" "master" {
   vm_size                       = "${var.master_size}"
   availability_set_id           = "${azurerm_availability_set.masterVMAvailSet.id}"
   delete_os_disk_on_termination = true
+  # Bootstrap Node must be alive and well first.
   depends_on                    = [ "azurerm_virtual_machine.dcosBootstrapNodeVM" ]
 
   lifecycle {
     ignore_changes = ["admin_password"]
+  }
+
+  connection {
+    type         = "ssh"
+    host         = "${azurerm_public_ip.master_lb.ip_address}"
+    port         = "${lookup(var.master_port, count.index+1)}"
+    user         = "${var.vm_user}"
+    timeout      = "30s"
+    private_key  = "${file(var.private_key_path)}"
+  }
+
+  # provisioners execute in order.
+  provisioner "remote-exec" {
+    inline = [
+      "sudo mkdir -p /opt/dcos",
+      "sudo chown ${var.vm_user} /opt/dcos",
+      "sudo chmod 755 -R /opt/dcos"
+    ]
+  }
+
+  # Now the provisioning for DC/OS
+  provisioner "file" {
+    source      = "${path.module}/files/install.sh"
+    destination = "/opt/dcos/install.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod 755 /opt/dcos/install.sh",
+      "cd /opt/dcos && bash install.sh '172.16.0.8' 'master'"
+    ]
   }
 
   storage_image_reference {
@@ -61,26 +93,5 @@ resource "azurerm_virtual_machine" "master" {
       key_data = "${file(var.public_key_path)}"
     }
   }
-
-}
-
-resource "azurerm_virtual_machine_extension" "master" {
-  name                        = "installDCOS${format("%01d", count.index+1)}"
-  location                    = "${azurerm_resource_group.dcos.location}"
-  count                       = "${var.master_count}"
-  depends_on                  = ["azurerm_virtual_machine.master"]
-  resource_group_name         = "${azurerm_resource_group.dcos.name}"
-  virtual_machine_name        = "master${format("%01d", count.index+1)}"
-  publisher                   = "Microsoft.Azure.Extensions"
-  type                        = "CustomScript"
-  type_handler_version        = "2.0"
-  auto_upgrade_minor_version  = true
-
-  # The install script is now baked in using custom_data and cloud-init
-  settings = <<SETTINGS
-    {
-        "commandToExecute": "cd /opt/dcos && bash install.sh '172.16.0.8' 'master'"
-    }
-SETTINGS
 
 }

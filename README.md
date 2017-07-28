@@ -94,6 +94,13 @@ to the Azure SP account. (Refer to [Azure RBAC documentation](https://docs.micro
 
 - [] Packer has not been touched from the original and likely does not work.
 
+# Contributing
+
+* Contributions welcome.
+* We use Atom as our editor with soft tabs (i.e. spaces)
+set to a width of *2* for the `.tf` files. Please follow this.
+
+
 # Terraform Usage #
 
 #### WARNING: Be sure that you are not overriding existing Azure resources that are in use. This Terraform process will create a resource group to contain all dependent resources within. This makes it easy to cleanup.
