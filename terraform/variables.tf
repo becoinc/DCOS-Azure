@@ -1,8 +1,29 @@
+variable "instance_name" {
+  type        = "string"
+  default     = "dev"
+  description = "An instance name used to identify this setup. Typically, dev, staging or production."
+}
+
+variable "azure_resource_group" {}
+
 variable "resource_base_name" {}
 
 variable "resource_suffix" {}
 
-variable "dcos_download_url" {}
+# You can force a particular version:
+# https://downloads.dcos.io/dcos/stable/1.9.2/dcos_generate_config.sh
+variable "dcos_download_url" {
+   type = "string"
+   default = "https://downloads.dcos.io/dcos/stable/dcos_generate_config.sh"
+}
+
+variable "bootstrap_private_key_path" {
+  description = "A separate SSH private key for the bootstrap node as a bastion host."
+}
+
+variable "bootstrap_public_key_path" {
+  description = "A separate SSH public key for the bootstrap node as a bastion host."
+}
 
 variable "private_key_path" {}
 
@@ -10,12 +31,14 @@ variable "public_key_path" {}
 
 variable "vm_user" {}
 
-variable "location" {}
+variable "azure_region" {}
 
 variable "owner" {}
 
 variable "expiration" {}
 
+# You can get an exhaustive list of available images using the Azure CLI:
+# az vm image list --offer CoreOS --all
 variable "image" {
   type = "map"
 
@@ -23,12 +46,14 @@ variable "image" {
     publisher = "CoreOS"
     offer     = "CoreOS"
     sku       = "Stable"
-    version   = "latest"
+    version   = "1409.7.0"
   }
 }
 
 /* Masters */
-variable "master_count" {}
+variable "master_count" {
+  description = "The number of DC/OS master nodes. Must be 1, 3 or 5. Do not use 1 for a real cluster."
+}
 
 variable "master_port" {
   default = {
@@ -59,7 +84,7 @@ variable "bootstrap_private_ip_address_index" {
 }
 
 variable "master_size" {
-  default = "Standard_D2_V2"
+  default = "Standard_D2_v2_Promo"
 }
 
 variable "master_private_ip_address_index" {
@@ -74,8 +99,13 @@ variable "agent_private_count" {
   default = 10
 }
 
-variable "agent_size" {
-  default = "Standard_D2_V2"
+variable os_disk_size {
+  default = 64
+  description = "The size in GB of the Operating System Disks."
+}
+
+variable "agent_private_size" {
+  default = "Standard_D2_v2_Promo"
 }
 
 variable "agent_private_ip_address_index" {
@@ -88,7 +118,7 @@ variable "agent_public_count" {
 }
 
 variable "agent_public_size" {
-  default = "Standard_D2_V2"
+  default = "Standard_D2_v2_Promo"
 }
 
 variable "agent_public_private_ip_address_index" {

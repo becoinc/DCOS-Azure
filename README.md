@@ -3,19 +3,22 @@ Deploy DC/OS 1.9 running CoreOS on Microsoft Azure using Terraform
 
 ![](./resources/imgs/ninjaterracat.png)
 
-This script allow you to deploy a DC/OS cluster in best practices on Microsoft Azure.
+This script allows you to deploy a DC/OS cluster on Microsoft Azure.
 
-A Section about Packer is in progress
+This repository is based on the initial work found in
+[DCOS-Azure](https://github.com/julienstroheker/DCOS-Azure).
 
-You can watch [this online meetup](https://youtu.be/ifNitKh-L0o?t=2231) about Terraform and DC/OS in general where I presented this project.
+# Introduction & Quick Start #
 
-# Terraform Usage #
+## Dev/Deploy Environment Setup ##
+This package is intended to be used as a [terraform module](https://www.terraform.io/docs/configuration/modules.html).
 
-#### WARNING: Be sure that you are not overriding existing Azure resources that are in use. This Terraform process will create a resource group to contain all dependent resources within. This makes it easy to cleanup.
+Modules are declared in a higher level project configuration, which is setup for
+the particular deployment scenario. This allows the DC/OS terraform module
+to function as just one piece of a more complicated multi-module cloud
+infrastructure deployment.
 
-#### NOTE: This deployment is not meant to obviate the need to understand the install process or read the docs. Please spend some time to understand both [DC/OS](https://docs.mesosphere.com/1.9/overview/) and the [install process](https://docs.mesosphere.com/1.9/administration/installing/).
-
-## Preperation Steps ##
+## Prereqs ##
 
 * It is assumed that you have a functioning Azure client installed. You can do so [here](https://github.com/Azure/azure-cli)
 
@@ -25,6 +28,21 @@ You can watch [this online meetup](https://youtu.be/ifNitKh-L0o?t=2231) about Te
   * ARM_CLIENT_ID=<client id>
   * ARM_CLIENT_SECRET=<cient secret>
   * ARM_TENANT_ID=<tenant id>
+
+See [Azure CLI Setup](#azure-cli) for full details.
+
+# TODO and Works in Progress #
+
+Packer has not been touched from the original.
+
+# Terraform Usage #
+
+#### WARNING: Be sure that you are not overriding existing Azure resources that are in use. This Terraform process will create a resource group to contain all dependent resources within. This makes it easy to cleanup.
+
+#### NOTE: This deployment is not meant to obviate the need to understand the install process or read the docs. Please spend some time to understand both [DC/OS](https://docs.mesosphere.com/1.9/overview/) and the [install process](https://docs.mesosphere.com/1.9/administration/installing/).
+
+# Setting up the Azure CLI and Credentials
+<a name="azure_cli"></a>
 
 * The values for the above environment variables can be obtained through the Azure CLI commands below.
 
@@ -56,7 +74,7 @@ export SUBSCRIPTIONID=`az account show --output tsv | cut -f2`
 
 ```
 
-* Create an Azure application 
+* Create an Azure application
 
 ```bash
 $ export PASSWORD=`openssl rand -base64 24`
