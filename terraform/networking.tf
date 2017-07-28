@@ -2,7 +2,15 @@ resource "azurerm_virtual_network" "dcos" {
   name                = "vnet${azurerm_resource_group.dcos.name}"
   resource_group_name = "${azurerm_resource_group.dcos.name}"
   location            = "${azurerm_resource_group.dcos.location}"
-  address_space       = ["172.16.0.0/24", "10.0.0.0/8"]
+  address_space       = ["172.16.0.0/24", "10.0.0.0/11", "10.32.0.0/11"]
+}
+
+output "dcos_vnet_name" {
+   value = "${azurerm_virtual_network.dcos.name}"
+}
+
+output "dcos_vnet_id" {
+   value = "${azurerm_virtual_network.dcos.id}"
 }
 
 resource "azurerm_subnet" "dcosmaster" {
@@ -24,6 +32,26 @@ resource "azurerm_subnet" "dcosprivate" {
   virtual_network_name      = "${azurerm_virtual_network.dcos.name}"
   network_security_group_id = "${azurerm_network_security_group.dcosprivate.id}"
   address_prefix            = "10.32.0.0/11"
+}
+
+resource "azurerm_network_security_group" "dcosbootstrapnode" {
+  name                = "dcos-bootstrap-nsg"
+  location            = "${azurerm_resource_group.dcos.location}"
+  resource_group_name = "${azurerm_resource_group.dcos.name}"
+
+  security_rule {
+    name                       = "ssh"
+    description                = "Allow SSH"
+    priority                   = 200
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "22"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
 }
 
 resource "azurerm_network_security_group" "dcosprivate" {

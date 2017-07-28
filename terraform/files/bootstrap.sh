@@ -23,10 +23,13 @@ master_list:
 resolvers:
 - 8.8.8.8
 - 8.8.4.4
+platform: azure
+enable_docker_gc: 'true'
 oauth_enabled: 'false'
 telemetry_enabled: 'false'
 superuser_username: 'admin'
 superuser_password_hash: '${DCOS_PASSWORD_HASH}'
+enable_docker_gc: 'true'
 EOF
 
 cat <<'EOF' > "/var/tmp/genconf/ip-detect"
