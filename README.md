@@ -60,9 +60,39 @@ for the particular instance you are creating. This allows you to have
 different instances of your cluster for dev, staging, production, and
 individual developers.
 
+# Major changes from the original terraform script package.
+
+* Switched from UMDs (unmanaged disks) to managed disks. This allows for the
+option of Premium_LRS as a disk storage type. Also simplifies the terraform
+scripting.
+* Reorganized the file breakdown to separate more of the system elements.
+* Switched from VMSS for the Public and Private agents to terraform
+instantiated VMs, which allows for more flexibility in configuration of the
+machines.
+* Switched to terraform generated static IP addresses for predictable behavior
+in terms of node names and addresses.
+* Removed use of Azure VM Extensions for install and instead use the bootstrap
+node as a bastion (jumpbox) host to provision using terraform `remote-exec`
+instead. This leads to much more well documented provisioning behavior and
+semantics. Specifically, terraform runs the provisioning
+scripting only-once at creation. Azure VM Extensions require experimentation
+to determine the idempotence requirements of your scripts.
+* Add CoreOS ignition scripts to disable auto-reboot updates of the VMs. The
+last thing anyone needs is a master node "randomly" resetting.
+* Made sure to size the instance and disk defaults per the [dcos.io
+recommended values](https://dcos.io/docs/1.9/installing/custom/system-requirements/),
+with appropriate inline notes on size and costs.
+* Added full example, more documentation and
+a large number of inline notes on the configuration decision points and
+reasoning behind the setup of the scripts and use of the variables.
+* Make it possible to scope down the Azure Service Principal to just
+the resource group for the DC/OS cluster and manually pre-create the
+resource group and assign the IAM sp to apply principle of least privilege
+to the Azure SP account. (Refer to [Azure RBAC documentation](https://docs.microsoft.com/en-us/azure/active-directory/role-based-access-control-configure).)
+
 # TODO and Works in Progress #
 
-- [] Packer has not been touched from the original.
+- [] Packer has not been touched from the original and likely does not work.
 
 # Terraform Usage #
 
@@ -72,6 +102,10 @@ individual developers.
 
 # Setting up the Azure CLI and Credentials
 <a name="azure_cli"></a>
+
+*NOTE:* This Service Principal has *complete* access to your entire Azure
+subscription by default. We recommend that you scope down access to just
+the appropriate resource groups.
 
 * The values for the above environment variables can be obtained through the Azure CLI commands below.
 
