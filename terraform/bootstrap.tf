@@ -1,12 +1,12 @@
 resource "azurerm_public_ip" "dcosBootstrapNodePublicIp" {
-  name                         = "bootstrapPublicIP"
+  name                         = "dcosBootstrapPublicIP"
   location                     = "${azurerm_resource_group.dcos.location}"
   resource_group_name          = "${azurerm_resource_group.dcos.name}"
-  public_ip_address_allocation = "Dynamic"
+  public_ip_address_allocation = "Static"
 }
 
 resource "azurerm_network_interface" "dcosBootstrapNodeIF0" {
-  name                      = "bootstrapnic"
+  name                      = "dcosBootstrapnic"
   location                  = "${azurerm_resource_group.dcos.location}"
   resource_group_name       = "${azurerm_resource_group.dcos.name}"
   network_security_group_id = "${azurerm_network_security_group.dcosbootstrapnode.id}"

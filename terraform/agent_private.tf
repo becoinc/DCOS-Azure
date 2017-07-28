@@ -38,7 +38,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     timeout      = "30s"
     private_key  = "${file(var.private_key_path)}"
     # Configuration for the Jumpbox
-    bastion_host        = "${azurerm_private_ip.bootstrap.ip_address}"
+    bastion_host        = "${azurerm_public_ip.dcosBootstrapNodePublicIp.ip_address}"
     bastion_user        = "${var.vm_user}"
     bastion_private_key = "${file(var.bootstrap_private_key_path)}"
   }

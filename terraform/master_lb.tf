@@ -2,6 +2,18 @@ resource "azurerm_public_ip" "master_lb" {
   name                         = "masterPublicIP"
   location                     = "${azurerm_resource_group.dcos.location}"
   resource_group_name          = "${azurerm_resource_group.dcos.name}"
+  /*
+  https://docs.microsoft.com/en-us/azure/virtual-network/virtual-network-public-ip-address
+  Dynamic: Dynamic addresses are assigned only after the public IP address is associated
+  to a NIC attached to a VM and the VM is started for the first time.
+  Dynamic addresses can change if the VM the NIC is attached to is
+  stopped (deallocated). The address remains the same if the VM is rebooted or
+  stopped (but not deallocated).
+  Static: Static addresses are assigned when the public IP address is created.
+  Static addresses do not change even if the VM is put in the stopped (deallocated) state.
+  The address is only released when the NIC is deleted.
+  You can change the assignment method after the NIC is created.
+   */
   public_ip_address_allocation = "Dynamic"
   domain_name_label            = "${var.masterFQDN}-${var.resource_suffix}"
 }
