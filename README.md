@@ -30,6 +30,10 @@ To do so, you will need to following environment variables :
 
 See [Azure CLI Setup](#setting-up-the-azure-cli-and-credentials) for full details.
 
+* Ensure that your subscription and region have a sufficient CPU quota for
+the size of the cluster you are creating. You can file an Azure helpdesk ticket
+to get your quota increased.
+
 ## Dev/Deploy Environment Setup ##
 
 This package is intended to be used as a [terraform module](https://www.terraform.io/docs/configuration/modules.html).
@@ -92,14 +96,25 @@ to the Azure SP account. (Refer to [Azure RBAC documentation](https://docs.micro
 
 # TODO and Works in Progress #
 
-- [] Packer has not been touched from the original and likely does not work.
+- [ ] More documentation clean up.
+- [ ] Packer has not been touched from the original and likely does not work.
+- [ ] Better understanding/recovery handling for partial deployments.
 
-# Contributing
+# Contributing #
 
 * Contributions welcome.
 * We use Atom as our editor with soft tabs (i.e. spaces)
 set to a width of *2* for the `.tf` files. Please follow this.
 
+# Known Issues #
+
+* If the deployment fails in the middle, depending on what was created, the
+Azure load balancers may end up with empty rules. This manifests as a failure to
+provision the masters via ssh as the LB won't route the traffic. Recovery can be
+as simple as creating proper rules in the Azure UI. I've not been able to get
+terraform to recreate them in the middle of a deployment in a way that works.
+I believe this to be an Azure API side-effect or similar and not specifically
+a terraform problem. More trials needed.
 
 # Terraform Usage #
 
