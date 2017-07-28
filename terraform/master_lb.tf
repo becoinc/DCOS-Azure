@@ -14,7 +14,7 @@ resource "azurerm_public_ip" "master_lb" {
   The address is only released when the NIC is deleted.
   You can change the assignment method after the NIC is created.
    */
-  public_ip_address_allocation = "Dynamic"
+  public_ip_address_allocation = "Static"
   domain_name_label            = "${var.masterFQDN}-${var.resource_suffix}"
 }
 

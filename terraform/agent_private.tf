@@ -35,7 +35,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     type         = "ssh"
     host         = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address, count.index )}"
     user         = "${var.vm_user}"
-    timeout      = "30s"
+    timeout      = "120s"
     private_key  = "${file(var.private_key_path)}"
     # Configuration for the Jumpbox
     bastion_host        = "${azurerm_public_ip.dcosBootstrapNodePublicIp.ip_address}"

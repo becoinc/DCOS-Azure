@@ -7,7 +7,7 @@ resource "azurerm_public_ip" "agent_public_lb" {
   name                         = "publicAgentsLBPublicIP"
   location                     = "${azurerm_resource_group.dcos.location}"
   resource_group_name          = "${azurerm_resource_group.dcos.name}"
-  public_ip_address_allocation = "Dynamic"
+  public_ip_address_allocation = "Static"
   domain_name_label            = "${var.publicAgentFQDN}-${var.resource_suffix}"
 }
 

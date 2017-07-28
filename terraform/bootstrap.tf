@@ -42,7 +42,7 @@ resource "azurerm_virtual_machine" "dcosBootstrapNodeVM" {
     type         = "ssh"
     host         = "${azurerm_public_ip.dcosBootstrapNodePublicIp.ip_address}"
     user         = "${var.vm_user}"
-    timeout      = "30s"
+    timeout      = "120s"
     private_key  = "${file(var.bootstrap_private_key_path)}"
   }
 
