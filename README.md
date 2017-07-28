@@ -10,19 +10,18 @@ This repository is based on the initial work found in
 
 # Introduction & Quick Start #
 
-## Dev/Deploy Environment Setup ##
-This package is intended to be used as a [terraform module](https://www.terraform.io/docs/configuration/modules.html).
+* Read this entire readme. You need to understand the project structure setup
+herein. This will ensure the quickest path to success.
 
-Modules are declared in a higher level project configuration, which is setup for
-the particular deployment scenario. This allows the DC/OS terraform module
-to function as just one piece of a more complicated multi-module cloud
-infrastructure deployment.
-
-## Prereqs ##
+## Prereqs - Do this first ##
 
 * It is assumed that you have a functioning Azure client installed. You can do so [here](https://github.com/Azure/azure-cli)
 
-* Install [Terraform](https://www.terraform.io/downloads.html) and create credentials for Terraform to access Azure. To do so, you will need to following environment variables :
+* Install [Terraform](https://www.terraform.io/downloads.html). This was
+tested with `v0.9.11` on macOS Sierra.
+
+* Create credentials for Terraform to access Azure.
+To do so, you will need to following environment variables :
 
   * ARM_SUBSCRIPTION_ID=<subscription id>
   * ARM_CLIENT_ID=<client id>
@@ -31,9 +30,39 @@ infrastructure deployment.
 
 See [Azure CLI Setup](#azure-cli) for full details.
 
+## Dev/Deploy Environment Setup ##
+
+This package is intended to be used as a [terraform module](https://www.terraform.io/docs/configuration/modules.html).
+
+Modules are declared in a higher level project configuration, which is setup for
+the particular deployment scenario. This allows the DC/OS terraform module
+to function as just one piece of a more complicated multi-module cloud
+infrastructure deployment.
+
+* Setup a `main.tf` file that creates an instance of the DC/OS Azure module
+with appropriate variables. See the `dcos_only` example project included herein.
+This sets up a basic common configuration for how you want the cluster to operate.
+Most of these variables can be overridden by a `tfvars` file.
+The real purpose for this extra layer of abstraction is that this _project_
+layer functions as a place to glue together multi-module systems in a convenient
+place.
+
+For example, we've used this setup to create a DC/OS cluster and then a
+separate terraform module is also instantiated in the `main.tf` which is
+used to create other hosted Azure services, such as Event Hubs and Data Lakes,
+that form a full cloud system.
+
+*Note:* You can get this terraform module directly from github without cloning
+the whole repo. See the docs for [terraform get](https://www.terraform.io/docs/commands/get.html).
+
+* Setup a `instancename.tfvars` file that overrides the appropriate project variables
+for the particular instance you are creating. This allows you to have
+different instances of your cluster for dev, staging, production, and
+individual developers.
+
 # TODO and Works in Progress #
 
-Packer has not been touched from the original.
+- [] Packer has not been touched from the original.
 
 # Terraform Usage #
 
