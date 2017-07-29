@@ -30,7 +30,7 @@ output "Public Agent Load Balancer FQDN" {
   value = "${azurerm_public_ip.agent_public_lb.fqdn}"
 }
 
-output "Boostrap Node Public IP" {
+output "Boostrap_Node_Public_IP" {
   value = "${azurerm_public_ip.dcosBootstrapNodePublicIp.ip_address}"
 }
 
