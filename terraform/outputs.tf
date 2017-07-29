@@ -37,3 +37,9 @@ output "Boostrap Node Public IP" {
 output "Primary Access Key" {
   value = "${azurerm_storage_account.dcos.primary_access_key}"
 }
+
+# This is output so you can hook on to it and add "special" new agent nodes
+# to the existing subnet.
+output "private_agent_subnet" {
+  value = "${azurerm_subnet.dcosprivate.id}"
+}
