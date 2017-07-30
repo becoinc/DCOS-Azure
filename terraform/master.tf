@@ -38,7 +38,7 @@ resource "azurerm_virtual_machine" "master" {
     host         = "${azurerm_public_ip.master_lb.ip_address}"
     port         = "${lookup(var.master_port, count.index+1)}"
     user         = "${var.vm_user}"
-    timeout      = "30s"
+    timeout      = "120s"
     private_key  = "${file(var.private_key_path)}"
   }
 

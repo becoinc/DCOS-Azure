@@ -30,10 +30,16 @@ output "Public Agent Load Balancer FQDN" {
   value = "${azurerm_public_ip.agent_public_lb.fqdn}"
 }
 
-output "Boostrap Node Public IP" {
+output "Boostrap_Node_Public_IP" {
   value = "${azurerm_public_ip.dcosBootstrapNodePublicIp.ip_address}"
 }
 
 output "Primary Access Key" {
   value = "${azurerm_storage_account.dcos.primary_access_key}"
+}
+
+# This is output so you can hook on to it and add "special" new agent nodes
+# to the existing subnet.
+output "private_agent_subnet" {
+  value = "${azurerm_subnet.dcosprivate.id}"
 }

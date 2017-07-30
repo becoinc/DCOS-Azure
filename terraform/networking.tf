@@ -3,6 +3,9 @@ resource "azurerm_virtual_network" "dcos" {
   resource_group_name = "${azurerm_resource_group.dcos.name}"
   location            = "${azurerm_resource_group.dcos.location}"
   address_space       = ["172.16.0.0/24", "10.0.0.0/11", "10.32.0.0/11"]
+  lifecycle {
+    prevent_destroy = true 
+  }
 }
 
 output "dcos_vnet_name" {
