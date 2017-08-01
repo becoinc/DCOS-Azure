@@ -13,6 +13,11 @@ This repository is based on the initial work found in
 * Read this entire readme. You need to understand the project structure setup
 herein. This will ensure the quickest path to success.
 
+* This package is setup for a small, but production-ready
+just works out of the box.
+That means that it is _not_ the cheapest cluster configuration in terms of
+VM size and/or VM count.
+
 ## Prereqs - Do this first ##
 
 * It is assumed that you have a functioning Azure client installed. You can do so [here](https://github.com/Azure/azure-cli)
@@ -101,6 +106,7 @@ to the Azure SP account. (Refer to [Azure RBAC documentation](https://docs.micro
 - [ ] More documentation clean up.
 - [ ] Packer has not been touched from the original and likely does not work.
 - [ ] Better understanding/recovery handling for partial deployments.
+- [ ] Support a number of masters other than 5 more cleanly.
 
 # Contributing #
 
@@ -117,6 +123,9 @@ as simple as creating proper rules in the Azure UI. I've not been able to get
 terraform to recreate them in the middle of a deployment in a way that works.
 I believe this to be an Azure API side-effect or similar and not specifically
 a terraform problem. More trials needed.
+
+* Changing the number of masters requires editing of the bootstrap.sh script.
+This really should be a parameter.
 
 # Terraform Usage #
 

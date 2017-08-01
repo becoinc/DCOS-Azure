@@ -20,7 +20,13 @@ ip_detect_filename: /genconf/ip-detect
 master_discovery: static
 master_list:
 - 172.16.0.10
+- 172.16.0.11
+- 172.16.0.12
+- 172.16.0.13
+- 172.16.0.14
+# DNS on Azure is provided by the 168.63.129.16 Virtual IP
 resolvers:
+- 168.63.129.16
 - 8.8.8.8
 - 8.8.4.4
 platform: azure

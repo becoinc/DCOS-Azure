@@ -52,7 +52,14 @@ variable "image" {
 
 /* Masters */
 variable "master_count" {
-  description = "The number of DC/OS master nodes. Must be 1, 3 or 5. Do not use 1 for a real cluster."
+  default     = 5
+  description = <<EOF
+    The number of DC/OS master nodes.
+    Must be 1, 3 or 5. Do not use 1 for a real cluster.
+    If you change this number to something other than 5,
+    you must also change the bootstrap.sh script master_list
+    to reflect that proper IP list.
+EOF
 }
 
 variable "master_port" {
