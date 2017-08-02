@@ -69,8 +69,7 @@ resource "azurerm_virtual_machine" "master" {
   provisioner "remote-exec" {
     inline = [
       "sudo chmod 755 /opt/dcos/vm_setup.sh",
-      "sudo /opt/dcos/vm_setup.sh",
-      "sudo rm /opt/dcos/vm_setup.sh"
+      "sudo /opt/dcos/vm_setup.sh"
     ]
   }
 

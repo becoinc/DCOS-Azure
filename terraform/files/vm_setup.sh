@@ -16,8 +16,9 @@ WAACONF=/usr/share/oem/waagent.conf
 # See https://support.microsoft.com/en-us/help/4010058/how-to-add-a-swap-file-in-linux-azure-virtual-machines
 RESOURCE_DISK_SIZE=`df -m |grep resource|tr -s ' ' |cut -f 4 -d ' '`
 SWAP_SIZE=$(expr ${RESOURCE_DISK_SIZE} / 2)
-sed -i -e '/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/' ${WAACONF}
-sed -i -e "/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=${SWAP_SIZE}/" ${WAACONF}
+echo "Updating ${WAACONF} file."
+sed -i -e 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/' ${WAACONF}
+sed -i -e "s/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=${SWAP_SIZE}/" ${WAACONF}
 systemctl restart waagent
 
 #############################################################################
