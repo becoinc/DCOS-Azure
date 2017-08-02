@@ -1,3 +1,12 @@
+#
+# This is a terraform script to provision the DC/OS master nodes.
+#
+# Copyright (c) 2017 by Beco, Inc. All rights reserved.
+#
+# Created July-2017 by Jeffrey Zampieron <jeff@beco.io>
+#
+# License: See included LICENSE.md
+#
 
 resource "azurerm_network_interface" "master" {
   name                      = "master${format("%01d", count.index+1)}"
@@ -48,6 +57,20 @@ resource "azurerm_virtual_machine" "master" {
       "sudo mkdir -p /opt/dcos",
       "sudo chown ${var.vm_user} /opt/dcos",
       "sudo chmod 755 -R /opt/dcos"
+    ]
+  }
+
+  # Provision the VM itself.
+  provisioner "file" {
+    source      = "${path.module}/files/vm_setup.sh"
+    destination = "/opt/dcos/vm_setup.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod 755 /opt/dcos/vm_setup.sh",
+      "sudo /opt/dcos/vm_setup.sh",
+      "sudo rm /opt/dcos/vm_setup.sh"
     ]
   }
 

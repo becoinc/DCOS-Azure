@@ -8,6 +8,8 @@ This script allows you to deploy a DC/OS cluster on Microsoft Azure.
 This repository is based on the initial work found in
 [DCOS-Azure](https://github.com/julienstroheker/DCOS-Azure).
 
+See [License](./LICENSE.md) for license terms and conditions.
+
 # Introduction & Quick Start #
 
 * Read this entire readme. You need to understand the project structure setup

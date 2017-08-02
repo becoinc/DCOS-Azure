@@ -1,3 +1,12 @@
+#
+# This is a terraform script to provision the DC/OS public agent nodes.
+#
+# Copyright (c) 2017 by Beco, Inc. All rights reserved.
+#
+# Created July-2017 by Jeffrey Zampieron <jeff@beco.io>
+#
+# License: See included LICENSE.md
+#
 
 # The first network interface for the public agents
 resource "azurerm_network_interface" "dcosPublicAgentIF0" {
@@ -49,6 +58,20 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
       "sudo mkdir -p /opt/dcos",
       "sudo chown ${var.vm_user} /opt/dcos",
       "sudo chmod 755 -R /opt/dcos"
+    ]
+  }
+
+  # Provision the VM itself.
+  provisioner "file" {
+    source      = "${path.module}/files/vm_setup.sh"
+    destination = "/opt/dcos/vm_setup.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod 755 /opt/dcos/vm_setup.sh",
+      "sudo /opt/dcos/vm_setup.sh",
+      "sudo rm /opt/dcos/vm_setup.sh"
     ]
   }
 
@@ -105,3 +128,49 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
   }
 
 }
+
+# Setup an Azure VM Extension for Monitoring
+# See: https://docs.microsoft.com/en-us/azure/virtual-machines/linux/diagnostic-extension
+# for details.
+#az vm extension set --publisher Microsoft.Azure.Diagnostics --name LinuxDiagnostic --version 3.0
+# --resource-group $my_resource_group --vm-name $my_linux_vm
+# --protected-settings "${my_lad_protected_settings}" --settings portal_public_settings.json
+/*
+# JZ - This is on HOLD b/c of https://github.com/terraform-providers/terraform-provider-azurerm/issues/59
+# i.e. there isn't a way to get a SAS token in Terraform right now.
+data "template_file" "public_agent_lad_settings" {
+  template = "${file( "${path.module}/files/lad_settings.json.tpl" )}"
+  count    = "${var.agent_public_count}"
+  vars = {
+    DIAGNOSTIC_STORAGE_ACCOUNT = "${azurerm_storage_account.dcosAzureLinuxDiag.name}"
+    VM_RESOURCE_ID             = "${element( azurerm_virtual_machine.dcosPublicAgent.*.id, count.index )}"
+  }
+}
+
+resource "azurerm_virtual_machine_extension" "dcosPublicAgentDiagExt" {
+  name                        = "dcosPublicAgentDiagExt"
+  location                    = "${azurerm_resource_group.dcos.location}"
+  resource_group_name         = "${azurerm_resource_group.dcos.name}"
+  virtual_machine_name        = "${element( azurerm_virtual_machine.dcosPublicAgent.*.name, count.index )}"
+  publisher                   = "Microsoft.Azure.Diagnostics"
+  type                        = "LinuxDiagnostic"
+  type_handler_version        = "3.0"
+  auto_upgrade_minor_version  = true
+  count                       = "${var.agent_public_count}"
+
+  # see: https://docs.microsoft.com/en-us/azure/virtual-machines/linux/diagnostic-extension
+  protected_settings = <<PROTSETTINGS
+  {
+    "storageAccountName" : "${azurerm_storage_account.dcosAzureLinuxDiag.name}",
+    "storageAccountEndPoint": "",
+    "storageAccountSasToken": "SAS access token",
+  }
+PROTSETTINGS
+
+  settings = "${element( data.template_file.public_agent_lad_settings.*.rendered, count.index )}"
+
+  tags = {
+    environment = "${var.instance_name}"
+  }
+}
+*/
