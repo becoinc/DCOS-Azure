@@ -66,6 +66,10 @@ that form a full cloud system.
 *Note:* You can get this terraform module directly from github without cloning
 the whole repo. See the docs for [terraform get](https://www.terraform.io/docs/commands/get.html).
 
+* Ensure your `main.tf` calls out compatible versions of the providers
+for this module. We use `azurerm` and `template` and tested with
+version `~> 0.1` of each. See the example `main.tf` for a provider block.
+
 * Setup a `instancename.tfvars` file that overrides the appropriate project variables
 for the particular instance you are creating. This allows you to have
 different instances of your cluster for dev, staging, production, and

@@ -7,6 +7,15 @@
 
  This is used e.g. terraform plan -var-file=../../../instances/azure/dev/dev.tfvars
 */
+
+provider "azurerm" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
 variable "instance_config" {
    type = "map"
    default = {}
