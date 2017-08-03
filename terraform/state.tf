@@ -9,14 +9,22 @@
 #
 
 resource "azurerm_storage_account" "dcos" {
-  name                = "${replace("sa${var.resource_base_name}${var.resource_suffix}","_",0)}"
-  resource_group_name = "${azurerm_resource_group.dcos.name}"
-  location            = "${azurerm_resource_group.dcos.location}"
-  account_type        = "Standard_LRS"
+  name                   = "${replace("sa${var.resource_base_name}${var.resource_suffix}","_",0)}"
+  resource_group_name    = "${azurerm_resource_group.dcos.name}"
+  location               = "${azurerm_resource_group.dcos.location}"
+  account_type           = "Standard_LRS"
+  enable_blob_encryption = true
 }
 
 resource "azurerm_storage_container" "state" {
   name                  = "terraform-state"
+  resource_group_name   = "${azurerm_resource_group.dcos.name}"
+  storage_account_name  = "${azurerm_storage_account.dcos.name}"
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "dcos" {
+  name                  = "dcos1dot9"
   resource_group_name   = "${azurerm_resource_group.dcos.name}"
   storage_account_name  = "${azurerm_storage_account.dcos.name}"
   container_access_type = "private"
