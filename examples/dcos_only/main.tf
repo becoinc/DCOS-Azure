@@ -40,7 +40,6 @@ module "dcos" {
    bootstrap_size      = "Standard_D2_v2_Promo"
 
    /* Masters - Recommended 4 Core, 32G Ram, 120G HDD */
-   master_count         = "${var.instance_config["master_count"]}"
    /* typically we use DS12_v2 size, but you can down size for small clusters */
    master_size          = "${var.instance_config["master_size"]}"
 
