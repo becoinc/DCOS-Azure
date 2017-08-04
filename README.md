@@ -100,6 +100,8 @@ with appropriate inline notes on size and costs.
 * Added full example, more documentation and
 a large number of inline notes on the configuration decision points and
 reasoning behind the setup of the scripts and use of the variables.
+* Bake in operational and management features, such as etcd, node Exporter
+and cAdvisor.
 * Make it possible to scope down the Azure Service Principal to just
 the resource group for the DC/OS cluster and manually pre-create the
 resource group and assign the IAM sp to apply principle of least privilege
@@ -132,6 +134,28 @@ a terraform problem. More trials needed.
 
 * Changing the number of masters requires editing of the bootstrap.sh script.
 This really should be a parameter.
+
+# Operations and Maintenance #
+
+This section discusses running your cluster once it has been terraformed.
+
+## Orchestration ##
+
+DC/OS uses zookeeper as a distributed, leader elected key-value store for
+cluster management. Another popular one is etcd, which is the CoreOS
+native distributed k-v store.
+As the VMs for the cluster are using CoreOS, we've elected to install etcd by default
+on each of the masters. This can facilitate things like rolling OS
+updates with distributed locking (which we disable by default).
+
+## Performance Monitoring ##
+
+All the nodes, including the masters, run [cAdvisor](https://github.com/google/cadvisor) (port 63000)
+and [Node Exporter](https://github.com/prometheus/node_exporter) (port 63001) by default
+at the coreos level. Docker is set to automatically restart them if the
+service dies.
+This is to facilitate scraping with something like
+[Prometheus](https://www.prometheus.io) for monitoring and metrics.
 
 # Terraform Usage #
 
