@@ -1,3 +1,13 @@
+#
+# This is a terraform script to configure the terraform modules in the example.
+#
+# Copyright (c) 2017 by Beco, Inc. All rights reserved.
+#
+# Created July-2017 by Jeffrey Zampieron <jeff@beco.io>
+#
+# License: See included LICENSE.md
+#
+
 /*
  Declare the instance config for later override.
  In being consistent with our instance Configuration
