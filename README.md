@@ -8,6 +8,8 @@ This script allows you to deploy a DC/OS cluster on Microsoft Azure.
 This repository is based on the initial work found in
 [DCOS-Azure](https://github.com/julienstroheker/DCOS-Azure).
 
+See [License](./LICENSE.md) for license terms and conditions.
+
 # Introduction & Quick Start #
 
 * Read this entire readme. You need to understand the project structure setup
@@ -23,7 +25,7 @@ VM size and/or VM count.
 * It is assumed that you have a functioning Azure client installed. You can do so [here](https://github.com/Azure/azure-cli)
 
 * Install [Terraform](https://www.terraform.io/downloads.html). This was
-tested with `v0.9.11` on macOS Sierra.
+tested with `v0.10.0` on macOS Sierra.
 
 * Create credentials for Terraform to access Azure.
 To do so, you will need to following environment variables :
@@ -64,6 +66,10 @@ that form a full cloud system.
 *Note:* You can get this terraform module directly from github without cloning
 the whole repo. See the docs for [terraform get](https://www.terraform.io/docs/commands/get.html).
 
+* Ensure your `main.tf` calls out compatible versions of the providers
+for this module. We use `azurerm` and `template` and tested with
+version `~> 0.1` of each. See the example `main.tf` for a provider block.
+
 * Setup a `instancename.tfvars` file that overrides the appropriate project variables
 for the particular instance you are creating. This allows you to have
 different instances of your cluster for dev, staging, production, and
@@ -94,6 +100,8 @@ with appropriate inline notes on size and costs.
 * Added full example, more documentation and
 a large number of inline notes on the configuration decision points and
 reasoning behind the setup of the scripts and use of the variables.
+* Bake in operational and management features, such as etcd, node Exporter
+and cAdvisor.
 * Make it possible to scope down the Azure Service Principal to just
 the resource group for the DC/OS cluster and manually pre-create the
 resource group and assign the IAM sp to apply principle of least privilege
@@ -126,6 +134,36 @@ a terraform problem. More trials needed.
 
 * Changing the number of masters requires editing of the bootstrap.sh script.
 This really should be a parameter.
+
+# Operations and Maintenance #
+
+This section discusses running your cluster once it has been terraformed.
+
+## Time Sync ##
+
+Maintaining cluster time synchronization is a core requirement of DC/OS
+and its components.
+We _do not_ enable NTP and instead leave `systemd-timesync` enabled with the
+understanding the Azure's VM hypervisor pushes down time on the nodes
+by default.
+
+## Orchestration ##
+
+DC/OS uses zookeeper as a distributed, leader elected key-value store for
+cluster management. Another popular one is [etcd](https://coreos.com/etcd/docs/latest/getting-started-with-etcd.html),
+which is the CoreOS native distributed k-v store.
+As the VMs for the cluster are using CoreOS, we've elected to install etcd by default
+on each of the masters. This can facilitate things like rolling OS
+updates with distributed locking (which we disable by default).
+
+## Performance Monitoring ##
+
+All the nodes, including the masters, run [cAdvisor](https://github.com/google/cadvisor) (port 63000)
+and [Node Exporter](https://github.com/prometheus/node_exporter) (port 63001) by default
+at the coreos level. Docker is set to automatically restart them if the
+service dies.
+This is to facilitate scraping with something like
+[Prometheus](https://www.prometheus.io) for monitoring and metrics.
 
 # Terraform Usage #
 

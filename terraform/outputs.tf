@@ -1,32 +1,42 @@
-output "Resource Group Name" {
+#
+# This is a terraform script to declare outputs from the DC/OS module.
+#
+# Copyright (c) 2017 by Beco, Inc. All rights reserved.
+#
+# Created July-2017 by Jeffrey Zampieron <jeff@beco.io>
+#
+# License: See included LICENSE.md
+#
+
+output "Resource_Group_Name" {
   value = "${azurerm_resource_group.dcos.name}"
 }
 
-output "Resource Group Location" {
+output "Resource_Group_Location" {
   value = "${azurerm_resource_group.dcos.location}"
 }
 
-output "Storage Account Name" {
+output "Storage_Account_Name" {
   value = "${azurerm_storage_account.dcos.name}"
 }
 
-output "Account Blob Endpoint" {
+output "Account_Blob_Endpoint" {
   value = "${azurerm_storage_account.dcos.primary_blob_endpoint}"
 }
 
-output "Virtual Network Name" {
+output "Virtual_Network_Name" {
   value = "${azurerm_virtual_network.dcos.name}"
 }
 
-output "Master Load Balancer IP" {
+output "Master_Load_Balancer_IP" {
   value = "${azurerm_public_ip.master_lb.ip_address}"
 }
 
-output "Public Agent Load Balancer IP" {
+output "Public_Agent_Load_Balancer_IP" {
   value = "${azurerm_public_ip.agent_public_lb.ip_address}"
 }
 
-output "Public Agent Load Balancer FQDN" {
+output "Public_Agent_Load_Balancer_FQDN" {
   value = "${azurerm_public_ip.agent_public_lb.fqdn}"
 }
 
@@ -34,7 +44,7 @@ output "Boostrap_Node_Public_IP" {
   value = "${azurerm_public_ip.dcosBootstrapNodePublicIp.ip_address}"
 }
 
-output "Primary Access Key" {
+output "Primary_Access_Key" {
   value = "${azurerm_storage_account.dcos.primary_access_key}"
 }
 

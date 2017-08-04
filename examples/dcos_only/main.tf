@@ -1,3 +1,13 @@
+#
+# This is a terraform script to configure the terraform modules in the example.
+#
+# Copyright (c) 2017 by Beco, Inc. All rights reserved.
+#
+# Created July-2017 by Jeffrey Zampieron <jeff@beco.io>
+#
+# License: See included LICENSE.md
+#
+
 /*
  Declare the instance config for later override.
  In being consistent with our instance Configuration
@@ -7,6 +17,15 @@
 
  This is used e.g. terraform plan -var-file=../../../instances/azure/dev/dev.tfvars
 */
+
+provider "azurerm" {
+  version = "~> 0.1"
+}
+
+provider "template" {
+  version = "~> 0.1"
+}
+
 variable "instance_config" {
    type = "map"
    default = {}
@@ -40,7 +59,6 @@ module "dcos" {
    bootstrap_size      = "Standard_D2_v2_Promo"
 
    /* Masters - Recommended 4 Core, 32G Ram, 120G HDD */
-   master_count         = "${var.instance_config["master_count"]}"
    /* typically we use DS12_v2 size, but you can down size for small clusters */
    master_size          = "${var.instance_config["master_size"]}"
 

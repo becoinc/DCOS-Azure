@@ -19,12 +19,12 @@ instance_config = {
    # Normally you'll want to separate these out... and tightly control them
    # What you do is then put per-user key pairs on the jumpbox
    # so they can access what they need to and its still revokable.
-   bootstrap_private_key_path = "./dev.ssh_private"
-   bootstrap_public_key_path  = "./dev.ssh_public"
-   private_key_path        = "./dev.ssh_private"
-   public_key_path         = "./dev.ssh_public"
-   # Only 3 or 5 are valid here.
-   master_count            = 3
+   bootstrap_private_key_path = "./instance_cfg/dev.ssh_private"
+   bootstrap_public_key_path  = "./instance_cfg/dev.ssh_public"
+   private_key_path        = "./instance_cfg/dev.ssh_private"
+   public_key_path         = "./instance_cfg/dev.ssh_public"
+   # Only 5 is valid here.
+   master_count            = 5
    /*
       typically we use DS12_v2 size, but you can down size for
       small clusters ... or lightly loaded clusters.
@@ -33,11 +33,11 @@ instance_config = {
    /* Standard_DS11_v2 - 2 Core, 14G Ram, 100G HDD - Promo Price $0.133/hr */
    master_size          = "Standard_DS11_v2_Promo"
    publicAgentFQDN      = "pub-agent"
-   agent_private_count  = 5
+   agent_private_count  = 3
    /* Standard_DS12_v2 - 4 Core, 28G Ram, 57G HDD - Promo Price $0.266/hr */
    /* Standard_DS13_v2_Promo - 8 core, 56G ram, 400GB SSD - Promo Price $0.532/hr */
    agent_private_size   = "Standard_DS12_v2_Promo"
-   agent_public_count   = 2
+   agent_public_count   = 1
    /* Standard_DS11_v2 - 2 Core, 14G Ram, 100G HDD - Promo Price $0.133/hr */
    agent_public_size    = "Standard_DS11_v2_Promo"
 

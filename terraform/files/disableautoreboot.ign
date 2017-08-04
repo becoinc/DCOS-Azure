@@ -3,7 +3,21 @@
     "version": "2.0.0",
     "config": {}
   },
-  "storage": {},
+  "storage": {
+    "files" : [
+      {
+        "filesystem": "root",
+        "path": "/etc/profile.env",
+        "contents": {
+          "source": "data:,export%20ENABLE_CHECK_TIME%3Dtrue",
+          "verification": {}
+        },
+        "mode": 420,
+        "user": {},
+        "group": {}
+      }
+    ]
+  },
   "systemd": {
      "units": [
         {

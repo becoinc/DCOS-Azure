@@ -1,3 +1,24 @@
+#
+# This is a terraform script to provision the DC/OS master nodes.
+#
+# Copyright (c) 2017 by Beco, Inc. All rights reserved.
+#
+# Created July-2017 by Jeffrey Zampieron <jeff@beco.io>
+#
+# License: See included LICENSE.md
+#
+
+data "template_file" "coreos_master_ignition" {
+  template = "${file( "${path.module}/files/master_setup.ign.tpl") }"
+  # Only 5 is supported right now. This is HA and production ready
+  # to almost any scale.
+  count    = "${var.master_count}"
+  vars = {
+    cluster_name = "${azurerm_resource_group.dcos.name}"
+    master_num   = "${count.index}"
+    my_ip        = "${element( azurerm_network_interface.master.*.private_ip_address, count.index ) }"
+  }
+}
 
 resource "azurerm_network_interface" "master" {
   name                      = "master${format("%01d", count.index+1)}"
@@ -51,6 +72,19 @@ resource "azurerm_virtual_machine" "master" {
     ]
   }
 
+  # Provision the VM itself.
+  provisioner "file" {
+    source      = "${path.module}/files/vm_setup.sh"
+    destination = "/opt/dcos/vm_setup.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chmod 755 /opt/dcos/vm_setup.sh",
+      "sudo /opt/dcos/vm_setup.sh"
+    ]
+  }
+
   # Now the provisioning for DC/OS
   provisioner "file" {
     source      = "${path.module}/files/install.sh"
@@ -82,7 +116,7 @@ resource "azurerm_virtual_machine" "master" {
     computer_name  = "master${format("%01d", count.index+1)}"
     admin_username = "${var.vm_user}"
     admin_password = "${uuid()}"
-    custom_data    = "${file( "${path.module}/files/disableautoreboot.ign" )}"
+    custom_data    = "${element( data.template_file.coreos_master_ignition.*.rendered, count.index ) }"
   }
 
   os_profile_linux_config {
