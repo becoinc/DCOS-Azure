@@ -139,11 +139,19 @@ This really should be a parameter.
 
 This section discusses running your cluster once it has been terraformed.
 
+## Time Sync ##
+
+Maintaining cluster time synchronization is a core requirement of DC/OS
+and its components.
+We _do not_ enable NTP and instead leave `systemd-timesync` enabled with the
+understanding the Azure's VM hypervisor pushes down time on the nodes
+by default.
+
 ## Orchestration ##
 
 DC/OS uses zookeeper as a distributed, leader elected key-value store for
-cluster management. Another popular one is etcd, which is the CoreOS
-native distributed k-v store.
+cluster management. Another popular one is [etcd](https://coreos.com/etcd/docs/latest/getting-started-with-etcd.html),
+which is the CoreOS native distributed k-v store.
 As the VMs for the cluster are using CoreOS, we've elected to install etcd by default
 on each of the masters. This can facilitate things like rolling OS
 updates with distributed locking (which we disable by default).
