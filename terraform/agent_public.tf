@@ -15,10 +15,11 @@ resource "azurerm_network_interface" "dcosPublicAgentIF0" {
     resource_group_name = "${azurerm_resource_group.dcos.name}"
     count               = "${var.agent_public_count}"
     ip_configuration {
-        name                          = "publicAgentIPConfig"
-        subnet_id                     = "${azurerm_subnet.dcospublic.id}"
-        private_ip_address_allocation = "Static"
-        private_ip_address            = "10.0.${count.index / 254}.${ (count.index + 10) % 254 }"
+        name                                    = "publicAgentIPConfig"
+        subnet_id                               = "${azurerm_subnet.dcospublic.id}"
+        private_ip_address_allocation           = "Static"
+        private_ip_address                      = "10.0.${count.index / 254}.${ (count.index + 10) % 254 }"
+        load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.agent_public.id}"]
         #NO PUBLIC IP FOR THIS INTERFACE - VM ONLY ACCESSIBLE INTERNALLY
         #public_ip_address_id          = "${azurerm_public_ip.vmPubIP.id}"
     }
