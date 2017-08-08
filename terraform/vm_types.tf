@@ -14,7 +14,9 @@
 variable "vm_type_to_os_disk_type" {
   type    = "map"
   default = {
-    Standard_A1_v2  = "Standard_LRS",
-    Standard_D2s_v3 = "Premium_LRS"
+    Standard_A1_v2         = "Standard_LRS",
+    Standard_D2s_v3        = "Premium_LRS",
+    Standard_DS2_v2_Promo  = "Premium_LRS",
+    Standard_DS11_v2_Promo = "Premium_LRS"
   }
 }
