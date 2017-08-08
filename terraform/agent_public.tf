@@ -99,7 +99,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
       name              = "dcosPublicAgentOsDisk${count.index}"
       caching           = "ReadWrite"
       create_option     = "FromImage"
-      managed_disk_type = "Premium_LRS"
+      managed_disk_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_public_size, "Premium_LRS" )}"
   }
 
   os_profile {
