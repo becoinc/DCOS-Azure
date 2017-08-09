@@ -17,7 +17,7 @@ resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
     ip_configuration {
         name                          = "privateAgentIPConfig"
         subnet_id                     = "${azurerm_subnet.dcosprivate.id}"
-        private_ip_address_allocation = "Static"
+        private_ip_address_allocation = "static"
         private_ip_address            = "10.32.${count.index / 254}.${ (count.index + 10) % 254 }"
         #NO PUBLIC IP FOR THIS INTERFACE - VM ONLY ACCESSIBLE INTERNALLY
         #public_ip_address_id          = "${azurerm_public_ip.vmPubIP.id}"
