@@ -1,0 +1,8 @@
+# This is a workaround for https://github.com/coreos/bugs/issues/2068
+# and goes into /etc/systemd/network mode 0644
+[Match]
+Type=bridge
+Name=docker* br-* d-dcos* m-dcos*
+
+[Link]
+Unmanaged=yes

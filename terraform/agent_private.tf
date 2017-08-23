@@ -80,8 +80,16 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     destination = "/opt/dcos/install.sh"
   }
 
+  provisioner "file" {
+    source      = "${path.module}/files/50-docker.network"
+    destination = "/tmp/50-docker.network"
+  }
+
   provisioner "remote-exec" {
     inline = [
+      "sudo mv /tmp/50-docker.network /etc/systemd/network/",
+      "sudo chmod 644 /etc/systemd/network/50-docker.network",
+      "sudo systemctl restart systemd-networkd",
       "chmod 755 /opt/dcos/install.sh",
       "cd /opt/dcos && bash install.sh '172.16.0.8' 'slave'"
     ]
