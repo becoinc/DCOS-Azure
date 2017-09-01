@@ -40,9 +40,9 @@ docker run \
   --publish=63000:8080 \
   --detach=true \
   --name=cadvisor \
-  google/cadvisor:v0.26.1
+  google/cadvisor:v0.27.0
 if [ $? != 0 ]; then
-  echo "Failed to start cAdvisor v0.26.1."
+  echo "Failed to start cAdvisor v0.27.0."
   exit 1
 fi
 echo "Started cAdvisor."
