@@ -96,6 +96,11 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
     ]
   }
 
+  boot_diagnostics {
+    enabled     = true
+    storage_uri = "${azurerm_storage_account.dcos.primary_blob_endpoint}"
+  }
+
   storage_image_reference {
     publisher = "${var.image["publisher"]}"
     offer     = "${var.image["offer"]}"

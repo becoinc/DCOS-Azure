@@ -9,11 +9,12 @@
 #
 
 resource "azurerm_storage_account" "dcos" {
-  name                   = "${replace("sa${var.resource_base_name}${var.resource_suffix}","_",0)}"
-  resource_group_name    = "${azurerm_resource_group.dcos.name}"
-  location               = "${azurerm_resource_group.dcos.location}"
-  account_type           = "Standard_LRS"
-  enable_blob_encryption = true
+  name                      = "${replace("sa${var.resource_base_name}${var.resource_suffix}","_",0)}"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
+  location                  = "${azurerm_resource_group.dcos.location}"
+  account_type              = "Standard_LRS"
+  enable_blob_encryption    = true
+  enable_https_traffic_only = true
 }
 
 resource "azurerm_storage_container" "state" {
