@@ -31,7 +31,7 @@ systemctl restart waagent
 docker run \
   --restart=always \
   --memory=128m \
-  --cpu-quota=20000 \
+  --cpu-quota=40000 \
   --volume=/:/rootfs:ro \
   --volume=/var/run:/var/run:rw \
   --volume=/sys:/sys:ro \
