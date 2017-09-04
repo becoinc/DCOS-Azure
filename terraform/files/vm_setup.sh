@@ -40,7 +40,7 @@ docker run \
   --publish=63000:8080 \
   --detach=true \
   --name=cadvisor \
-  google/cadvisor:v0.27.0
+  google/cadvisor:v0.27.0 --global_housekeeping_interval=1m0s --housekeeping_interval=5s
 if [ $? != 0 ]; then
   echo "Failed to start cAdvisor v0.27.0."
   exit 1
