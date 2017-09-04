@@ -31,7 +31,7 @@ systemctl restart waagent
 docker run \
   --restart=always \
   --memory=128m \
-  --cpu-quota=20000 \
+  --cpu-quota=40000 \
   --volume=/:/rootfs:ro \
   --volume=/var/run:/var/run:rw \
   --volume=/sys:/sys:ro \
@@ -40,9 +40,9 @@ docker run \
   --publish=63000:8080 \
   --detach=true \
   --name=cadvisor \
-  google/cadvisor:v0.26.1
+  google/cadvisor:v0.27.0 --global_housekeeping_interval=1m0s --housekeeping_interval=5s
 if [ $? != 0 ]; then
-  echo "Failed to start cAdvisor v0.26.1."
+  echo "Failed to start cAdvisor v0.27.0."
   exit 1
 fi
 echo "Started cAdvisor."

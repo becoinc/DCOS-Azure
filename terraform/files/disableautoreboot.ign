@@ -15,6 +15,17 @@
         "mode": 420,
         "user": {},
         "group": {}
+      },
+      {
+        "filesystem": "root",
+        "path": "/etc/sysctl.d/sysctl.conf",
+        "contents": {
+          "source": "data:,net.ipv4.tcp_keepalive_time%3D3600",
+          "verification": {}
+        },
+        "mode": 420,
+        "user": {},
+        "group": {}
       }
     ]
   },

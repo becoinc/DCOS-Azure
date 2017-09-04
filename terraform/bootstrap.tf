@@ -100,6 +100,11 @@ resource "azurerm_virtual_machine" "dcosBootstrapNodeVM" {
     ]
   }
 
+  boot_diagnostics {
+    enabled     = true
+    storage_uri = "${azurerm_storage_account.dcos.primary_blob_endpoint}"
+  }
+
   storage_os_disk {
     name              = "dcosBootstrapVMDisk"
     caching           = "ReadWrite"
