@@ -46,7 +46,7 @@ variable "image" {
     publisher = "CoreOS"
     offer     = "CoreOS"
     sku       = "Stable"
-    version   = "1409.9.0"
+    version   = "1465.7.0"
   }
 }
 
