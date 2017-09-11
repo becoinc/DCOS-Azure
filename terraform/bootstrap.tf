@@ -56,6 +56,7 @@ resource "azurerm_virtual_machine" "dcosBootstrapNodeVM" {
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
   network_interface_ids         = [ "${azurerm_network_interface.dcosBootstrapNodeIF0.id}",
                                     "${azurerm_network_interface.dcosBootstrapMgmtIF0.id}" ]
+  primary_network_interface_id  = "${azurerm_network_interface.dcosBootstrapNodeIF0.id}"
   vm_size                       = "${var.bootstrap_size}"
   delete_os_disk_on_termination = true
 
