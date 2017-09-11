@@ -25,12 +25,26 @@ resource "azurerm_network_interface" "dcosPublicAgentIF0" {
     }
 }
 
+resource "azurerm_network_interface" "dcosPublicAgentMgmt" {
+    name                = "dcosPublicAgentMgmtIF${count.index}-0"
+    location            = "${azurerm_resource_group.dcos.location}"
+    resource_group_name = "${azurerm_resource_group.dcos.name}"
+    count               = "${var.agent_public_count}"
+    ip_configuration {
+        name                                    = "publicAgentMgMtIPConfig"
+        subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"
+        private_ip_address_allocation           = "static"
+        private_ip_address                      = "10.225.${count.index / 254}.${ (count.index + 10) % 254 }"
+    }
+}
+
 resource "azurerm_virtual_machine" "dcosPublicAgent" {
   name                          = "dcosPublicAgent${count.index}"
   location                      = "${azurerm_resource_group.dcos.location}"
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
   primary_network_interface_id  = "${element( azurerm_network_interface.dcosPublicAgentIF0.*.id, count.index )}"
-  network_interface_ids         = [ "${element( azurerm_network_interface.dcosPublicAgentIF0.*.id, count.index )}" ]
+  network_interface_ids         = [ "${element( azurerm_network_interface.dcosPublicAgentIF0.*.id, count.index )}",
+                                    "${element( azurerm_network_interface.dcosPublicAgentMgmt.*.id, count.index )}" ]
   vm_size                       = "${var.agent_public_size}"
   availability_set_id           = "${azurerm_availability_set.publicAgentVMAvailSet.id}"
   delete_os_disk_on_termination = true

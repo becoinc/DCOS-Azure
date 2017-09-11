@@ -30,6 +30,21 @@ resource "azurerm_network_interface" "dcosBootstrapNodeIF0" {
   }
 }
 
+resource "azurerm_network_interface" "dcosBootstrapMgmtIF0" {
+  name                      = "dcosBootstrapMgmtNic"
+  location                  = "${azurerm_resource_group.dcos.location}"
+  resource_group_name       = "${azurerm_resource_group.dcos.name}"
+  network_security_group_id = "${azurerm_network_security_group.dcosmgmt.id}"
+
+  ip_configuration {
+    name                          = "ipconfig1"
+    private_ip_address_allocation = "static"
+    private_ip_address            = "10.224.0.1"
+    subnet_id                     = "${azurerm_subnet.dcosMgmt.id}"
+    public_ip_address_id          = "${azurerm_public_ip.dcosBootstrapNodePublicIp.id}"
+  }
+}
+
 /*
   This box is _also_ used as a bastion host for ssh into the cluster.
   You can separate the ssh keys for the bastion host and the rest of the
@@ -40,7 +55,8 @@ resource "azurerm_virtual_machine" "dcosBootstrapNodeVM" {
   name                          = "dcosBootstrapVM"
   location                      = "${azurerm_resource_group.dcos.location}"
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
-  network_interface_ids         = ["${azurerm_network_interface.dcosBootstrapNodeIF0.id}"]
+  network_interface_ids         = [ "${azurerm_network_interface.dcosBootstrapNodeIF0.id}",
+                                    "${azurerm_network_interface.dcosBootstrapMgmtIF0.id}" ]
   vm_size                       = "${var.bootstrap_size}"
   delete_os_disk_on_termination = true
 
