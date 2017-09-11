@@ -41,7 +41,6 @@ resource "azurerm_network_interface" "dcosBootstrapMgmtIF0" {
     private_ip_address_allocation = "static"
     private_ip_address            = "10.224.0.1"
     subnet_id                     = "${azurerm_subnet.dcosMgmt.id}"
-    public_ip_address_id          = "${azurerm_public_ip.dcosBootstrapNodePublicIp.id}"
   }
 }
 
