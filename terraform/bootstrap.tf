@@ -39,7 +39,7 @@ resource "azurerm_network_interface" "dcosBootstrapMgmtIF0" {
   ip_configuration {
     name                          = "ipconfig1"
     private_ip_address_allocation = "static"
-    private_ip_address            = "10.224.0.1"
+    private_ip_address            = "10.224.0.10"
     subnet_id                     = "${azurerm_subnet.dcosMgmt.id}"
   }
 }
