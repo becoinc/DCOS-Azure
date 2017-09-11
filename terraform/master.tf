@@ -54,7 +54,7 @@ resource "azurerm_network_interface" "masterMgmt" {
 }
 
 resource "azurerm_virtual_machine" "master" {
-  name                          = "master${format("%01d", count.index+1)}"
+  name                          = "dcosMaster${count.index}"
   location                      = "${azurerm_resource_group.dcos.location}"
   count                         = "${var.master_count}"
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
