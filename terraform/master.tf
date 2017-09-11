@@ -58,6 +58,7 @@ resource "azurerm_virtual_machine" "master" {
   location                      = "${azurerm_resource_group.dcos.location}"
   count                         = "${var.master_count}"
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
+  primary_network_interface_id  = "${element(azurerm_network_interface.master.*.id, count.index)}"
   network_interface_ids         = [ "${element(azurerm_network_interface.master.*.id, count.index)}",
                                     "${element(azurerm_network_interface.masterMgmt.*.id, count.index)}" ]
   vm_size                       = "${var.master_size}"
