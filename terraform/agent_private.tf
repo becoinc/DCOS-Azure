@@ -28,7 +28,7 @@ resource "azurerm_network_interface" "dcosPrivateAgentMgmt" {
     name                = "dcosPrivateAgentMgmtIF${count.index}-0"
     location            = "${azurerm_resource_group.dcos.location}"
     resource_group_name = "${azurerm_resource_group.dcos.name}"
-    count               = "${var.agent_public_count}"
+    count               = "${var.agent_private_count}"
     ip_configuration {
         name                                    = "privateAgentMgmtIPConfig"
         subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"
