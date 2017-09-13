@@ -10,10 +10,12 @@
 
 # The first network interface for the Private agents
 resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
-    name                = "dcosPrivateAgentIF${count.index}-0"
-    location            = "${azurerm_resource_group.dcos.location}"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
-    count               = "${var.agent_private_count}"
+    name                    = "dcosPrivateAgentIF${count.index}-0"
+    location                = "${azurerm_resource_group.dcos.location}"
+    resource_group_name     = "${azurerm_resource_group.dcos.name}"
+    count                   = "${var.agent_private_count}"
+    internal_dns_name_label = "dcosprivateagent${count.index}"
+
     ip_configuration {
         name                          = "privateAgentIPConfig"
         subnet_id                     = "${azurerm_subnet.dcosprivate.id}"

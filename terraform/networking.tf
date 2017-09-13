@@ -12,7 +12,7 @@ resource "azurerm_virtual_network" "dcos" {
     name                = "vnet${azurerm_resource_group.dcos.name}"
     resource_group_name = "${azurerm_resource_group.dcos.name}"
     location            = "${azurerm_resource_group.dcos.location}"
-    address_space       = ["172.16.0.0/24", "10.0.0.0/11", "10.32.0.0/11", "10.224.0.0/11" ]
+    address_space       = ["172.16.0.0/24", "10.0.0.0/11", "10.32.0.0/11" ]
     lifecycle {
         prevent_destroy = true
     }
@@ -45,20 +45,6 @@ resource "azurerm_subnet" "dcosprivate" {
     virtual_network_name      = "${azurerm_virtual_network.dcos.name}"
     network_security_group_id = "${azurerm_network_security_group.dcosprivate.id}"
     address_prefix            = "10.32.0.0/11"
-}
-
-resource "azurerm_subnet" "dcosMgmt" {
-    name                      = "dcos-agentMgmtSubnet"
-    resource_group_name       = "${azurerm_resource_group.dcos.name}"
-    virtual_network_name      = "${azurerm_virtual_network.dcos.name}"
-    network_security_group_id = "${azurerm_network_security_group.dcosprivate.id}"
-    address_prefix            = "10.224.0.0/11"
-}
-
-resource "azurerm_network_security_group" "dcosmgmt" {
-    name                = "dcos-mgmt-nsg"
-    location            = "${azurerm_resource_group.dcos.location}"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
 }
 
 resource "azurerm_network_security_group" "dcosbootstrapnode" {

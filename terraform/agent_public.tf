@@ -10,10 +10,12 @@
 
 # The first network interface for the public agents
 resource "azurerm_network_interface" "dcosPublicAgentIF0" {
-    name                = "dcosPublicAgentIF${count.index}-0"
-    location            = "${azurerm_resource_group.dcos.location}"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
-    count               = "${var.agent_public_count}"
+    name                    = "dcosPublicAgentIF${count.index}-0"
+    location                = "${azurerm_resource_group.dcos.location}"
+    resource_group_name     = "${azurerm_resource_group.dcos.name}"
+    count                   = "${var.agent_public_count}"
+    internal_dns_name_label = "dcospublicagent${count.index}"
+
     ip_configuration {
         name                                    = "publicAgentIPConfig"
         subnet_id                               = "${azurerm_subnet.dcospublic.id}"
