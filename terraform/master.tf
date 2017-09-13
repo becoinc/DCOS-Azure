@@ -21,12 +21,11 @@ data "template_file" "coreos_master_ignition" {
 }
 
 resource "azurerm_network_interface" "master" {
-  name                      = "master${format("%01d", count.index+1)}"
+  name                      = "dcosmaster${count.index}"
   location                  = "${azurerm_resource_group.dcos.location}"
   resource_group_name       = "${azurerm_resource_group.dcos.name}"
   count                     = "${var.master_count}"
   network_security_group_id = "${azurerm_network_security_group.dcosmaster.id}"
-  internal_dns_name_label   = "dcosmaster${format("%01d", count.index)}"
 
   ip_configuration {
     name                                    = "ipConfigNode"

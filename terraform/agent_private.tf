@@ -14,7 +14,6 @@ resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
     location                = "${azurerm_resource_group.dcos.location}"
     resource_group_name     = "${azurerm_resource_group.dcos.name}"
     count                   = "${var.agent_private_count}"
-    internal_dns_name_label = "dcosprivateagent${count.index}"
 
     ip_configuration {
         name                          = "privateAgentIPConfig"
