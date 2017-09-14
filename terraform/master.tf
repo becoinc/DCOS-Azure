@@ -136,7 +136,7 @@ resource "azurerm_virtual_machine" "master" {
   }
 
   os_profile {
-    computer_name  = "master${format("%01d", count.index+1)}"
+    computer_name  = "dcosmaster${count.index}"
     admin_username = "${var.vm_user}"
     admin_password = "${uuid()}"
     custom_data    = "${element( data.template_file.coreos_master_ignition.*.rendered, count.index ) }"

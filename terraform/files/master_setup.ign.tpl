@@ -20,7 +20,7 @@
         "filesystem": "root",
         "path": "/etc/hosts",
         "contents": {
-            "source": "data:,127.0.0.1%09localhost%0A%3A%3A1%09%09localhost%0A${my_ip}%20${vm_hostname}",
+            "source": "data:,127.0.0.1%09localhost%0A%3A%3A1%09%09localhost%0A${my_ip}%20${vm_hostname}%0A",
             "verification": {}
         },
         "mode": 420,

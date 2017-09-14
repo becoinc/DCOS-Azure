@@ -141,7 +141,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
   }
 
   os_profile {
-      computer_name  = "dcosPrivateAgent${count.index}"
+      computer_name  = "dcosprivateagent${count.index}"
       admin_username = "${var.vm_user}"
       admin_password = "${uuid()}"
       # According to the Azure Terraform Documentation

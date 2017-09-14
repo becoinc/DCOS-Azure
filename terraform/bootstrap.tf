@@ -51,7 +51,7 @@ resource "azurerm_network_interface" "dcosBootstrapMgmtIF0" {
   the internal private key still won't get you actually in the door.
  */
 resource "azurerm_virtual_machine" "dcosBootstrapNodeVM" {
-  name                          = "dcosBootstrapVM"
+  name                          = "dcosBootstrap"
   location                      = "${azurerm_resource_group.dcos.location}"
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
   network_interface_ids         = [ "${azurerm_network_interface.dcosBootstrapNodeIF0.id}",
@@ -136,7 +136,7 @@ resource "azurerm_virtual_machine" "dcosBootstrapNodeVM" {
   }
 
   os_profile {
-    computer_name  = "bootstrap"
+    computer_name  = "dcosbootstrap"
     admin_username = "${var.vm_user}"
     admin_password = "${uuid()}"
     custom_data    = "${file( "${path.module}/files/disableautoreboot.ign" )}"
