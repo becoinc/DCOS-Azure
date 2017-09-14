@@ -8,6 +8,17 @@
 # License: See included LICENSE.md
 #
 
+data "template_file" "coreos_private_ignition" {
+    template = "${file( "${path.module}/files/agent_setup.ign.tpl" ) }"
+    count    = "${var.agent_private_count}"
+    vars = {
+        cluster_name = "${azurerm_resource_group.dcos.name}"
+        my_ip        = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address, count.index ) }"
+        vm_hostname  = "dcosprivateagent${count.index}"
+    }
+}
+
+
 # The first network interface for the Private agents
 resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
     name                    = "dcosPrivateAgentIF${count.index}-0"
@@ -39,7 +50,7 @@ resource "azurerm_network_interface" "dcosPrivateAgentMgmt" {
 }
 
 resource "azurerm_virtual_machine" "dcosPrivateAgent" {
-  name                          = "dcosPrivateAgent${count.index}"
+  name                          = "dcosprivateagent${count.index}"
   location                      = "${azurerm_resource_group.dcos.location}"
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
   primary_network_interface_id  = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.id, count.index )}"
@@ -139,7 +150,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
       # However, according to CoreOS, their Ignition format is preferred.
       # cloud-init on Azure appears to be the deprecated coreos-cloudinit
       # Therefore we are going to try ignition.
-      custom_data    = "${base64encode(file( "${path.module}/files/disableautoreboot.ign" ))}"
+      custom_data    = "${element( data.template_file.coreos_private_ignition.*.rendered, count.index ) }"
   }
 
   os_profile_linux_config {

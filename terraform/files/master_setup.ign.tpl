@@ -15,6 +15,17 @@
         "mode": 420,
         "user": {},
         "group": {}
+      },
+      {
+        "filesystem": "root",
+        "path": "/etc/hosts",
+        "contents": {
+            "source": "data:,127.0.0.1%09localhost%0A%3A%3A1%09%09localhost%0A${my_ip}%20${vm_hostname}",
+            "verification": {}
+        },
+        "mode": 420,
+        "user": {},
+        "group": {}
       }
     ]
   },

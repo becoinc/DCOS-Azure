@@ -17,11 +17,12 @@ data "template_file" "coreos_master_ignition" {
     cluster_name = "${azurerm_resource_group.dcos.name}"
     master_num   = "${count.index}"
     my_ip        = "${element( azurerm_network_interface.master.*.private_ip_address, count.index ) }"
+    vm_hostname  = "dcosmaster${count.index}"
   }
 }
 
 resource "azurerm_network_interface" "master" {
-  name                      = "dcosmaster${count.index}"
+  name                      = "dcosmasternic${count.index}"
   location                  = "${azurerm_resource_group.dcos.location}"
   resource_group_name       = "${azurerm_resource_group.dcos.name}"
   count                     = "${var.master_count}"
@@ -54,7 +55,7 @@ resource "azurerm_network_interface" "masterMgmt" {
 }
 
 resource "azurerm_virtual_machine" "master" {
-  name                          = "dcosMaster${count.index}"
+  name                          = "dcosmaster${count.index}"
   location                      = "${azurerm_resource_group.dcos.location}"
   count                         = "${var.master_count}"
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
