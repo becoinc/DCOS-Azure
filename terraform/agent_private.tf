@@ -63,7 +63,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
   depends_on                    = ["azurerm_virtual_machine.master"]
 
   lifecycle {
-    ignore_changes  = ["admin_password"]
+    ignore_changes  = [ "storage_os_disk", "os_profile" ]
   }
 
   connection {
