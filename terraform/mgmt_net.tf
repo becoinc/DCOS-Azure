@@ -7,28 +7,11 @@
 #
 # License: See included LICENSE.md
 #
-resource "azurerm_virtual_network" "dcosmgmt" {
-    name                = "vnet${azurerm_resource_group.dcos.name}mgmt"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
-    location            = "${azurerm_resource_group.dcos.location}"
-    address_space       = [ "10.224.0.0/11" ]
-    lifecycle {
-        prevent_destroy = true
-    }
-}
-
-output "dcos_vnet_mgmt_name" {
-    value = "${azurerm_virtual_network.dcosmgmt.name}"
-}
-
-output "dcos_vnet_mgmt_id" {
-    value = "${azurerm_virtual_network.dcosmgmt.id}"
-}
 
 resource "azurerm_subnet" "dcosMgmt" {
     name                      = "dcos-agentMgmtSubnet"
     resource_group_name       = "${azurerm_resource_group.dcos.name}"
-    virtual_network_name      = "${azurerm_virtual_network.dcosmgmt.name}"
+    virtual_network_name      = "${azurerm_virtual_network.dcos.name}"
     network_security_group_id = "${azurerm_network_security_group.dcosmgmt.id}"
     address_prefix            = "10.224.0.0/11"
 }
