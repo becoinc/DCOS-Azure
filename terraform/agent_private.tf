@@ -137,7 +137,8 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
       name              = "dcosPrivateAgentOsDisk${count.index}"
       caching           = "ReadWrite"
       create_option     = "FromImage"
-      managed_disk_type = "Premium_LRS"
+      managed_disk_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+      disk_size_gb      = 128
   }
 
   os_profile {

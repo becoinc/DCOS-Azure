@@ -138,6 +138,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
       caching           = "ReadWrite"
       create_option     = "FromImage"
       managed_disk_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_public_size, "Premium_LRS" )}"
+      disk_size_gb      = 128
   }
 
   os_profile {
