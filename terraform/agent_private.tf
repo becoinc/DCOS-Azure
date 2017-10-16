@@ -156,8 +156,8 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
             "sudo mv /tmp/50-docker.network /etc/systemd/network/",
             "sudo chmod 644 /etc/systemd/network/50-docker.network",
             "sudo systemctl restart systemd-networkd",
-            "chmod 755 /opt/dcos/install.sh",
-            "cd /opt/dcos && bash install.sh '172.16.0.8' 'slave'"
+            "chmod 755 /opt/dcos/install_private_agent.sh",
+            "cd /opt/dcos && bash install_private_agent.sh '172.16.0.8' 'slave'"
         ]
     }
 
