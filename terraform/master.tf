@@ -33,8 +33,8 @@ resource "azurerm_network_interface" "master" {
         private_ip_address_allocation           = "static"
         private_ip_address                      = "172.16.0.${var.master_private_ip_address_index + count.index}"
         subnet_id                               = "${azurerm_subnet.dcosmaster.id}"
-        load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.master.id}"]
         // JZ - Removed because we have a bastion host.
+        //load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.master.id}"]
         //load_balancer_inbound_nat_rules_ids     = ["${element(azurerm_lb_nat_rule.masterlbrulessh.*.id, count.index)}"]
     }
 }
