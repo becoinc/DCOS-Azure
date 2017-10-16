@@ -35,6 +35,8 @@ resource "azurerm_lb_backend_address_pool" "master" {
   name                = "dcos-master-pool"
 }
 
+# JZ - Lock down the Master Nodes. No inbound SSH directly.
+/*
 resource "azurerm_lb_nat_rule" "masterlbrulessh" {
   resource_group_name            = "${azurerm_resource_group.dcos.name}"
   count                          = "${var.master_count}"
@@ -45,6 +47,7 @@ resource "azurerm_lb_nat_rule" "masterlbrulessh" {
   backend_port                   = 22
   frontend_ip_configuration_name = "dcos-master-lbFrontEnd"
 }
+*/
 
 /*
 resource "azurerm_lb_nat_rule" "masterlbrulehttp" {
