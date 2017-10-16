@@ -76,11 +76,14 @@ resource "azurerm_virtual_machine" "master" {
 
     connection {
         type         = "ssh"
-        host         = "${azurerm_public_ip.master_lb.ip_address}"
-        port         = "${lookup(var.master_port, count.index+1)}"
+        host         = "${element( azurerm_network_interface.dcosPublicAgentIF0.*.private_ip_address, count.index )}"
         user         = "${var.vm_user}"
         timeout      = "120s"
         private_key  = "${file(var.private_key_path)}"
+        # Configuration for the Jumpbox
+        bastion_host        = "${azurerm_public_ip.dcosBootstrapNodePublicIp.ip_address}"
+        bastion_user        = "${var.vm_user}"
+        bastion_private_key = "${file(var.bootstrap_private_key_path)}"
     }
 
     # provisioners execute in order.
