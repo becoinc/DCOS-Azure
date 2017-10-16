@@ -19,7 +19,7 @@ data "template_file" "coreos_private_ignition" {
 }
 
 
-# The first network interface for the Private agents
+# The first - eth0 - network interface for the Private agents
 resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
     name                    = "dcosPrivateAgentIF${count.index}-0"
     location                = "${azurerm_resource_group.dcos.location}"
@@ -36,6 +36,7 @@ resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
     }
 }
 
+# This is the second - eth1 - interface for the private agents.
 resource "azurerm_network_interface" "dcosPrivateAgentMgmt" {
     name                = "dcosPrivateAgentMgmtIF${count.index}-0"
     location            = "${azurerm_resource_group.dcos.location}"
@@ -45,125 +46,174 @@ resource "azurerm_network_interface" "dcosPrivateAgentMgmt" {
         name                                    = "privateAgentMgmtIPConfig"
         subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"
         private_ip_address_allocation           = "static"
-        private_ip_address                      = "10.226.${count.index / 254}.${ (count.index + 10) % 254 }"
+        private_ip_address                      = "10.64.${count.index / 254}.${ (count.index + 10) % 254 }"
+    }
+}
+
+# This is the third - eth2 - interface for the private agents.
+resource "azurerm_network_interface" "dcosPrivateAgentStorage" {
+    name                = "dcosPrivateAgentStorageIF${count.index}-0"
+    location            = "${azurerm_resource_group.dcos.location}"
+    resource_group_name = "${azurerm_resource_group.dcos.name}"
+    count               = "${var.agent_private_count}"
+    ip_configuration {
+        name                                    = "privateAgentStorageIPConfig"
+        subnet_id                               = "${azurerm_subnet.dcosStorageData.id}"
+        private_ip_address_allocation           = "static"
+        private_ip_address                      = "10.96.${count.index / 254}.${ (count.index + 10) % 254 }"
+    }
+}
+
+/*
+ * These are created separately instead of inline with the VM
+ * b/c Terraform and Azure behave better on recreate that way.
+ */
+resource "azurerm_managed_disk" "storageDataDiskData" {
+    name                 = "dcosStorageDataDisk${count.index}"
+    location             = "${azurerm_resource_group.dcos.location}"
+    resource_group_name  = "${azurerm_resource_group.dcos.name}"
+    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+    create_option        = "Empty"
+    disk_size_gb         = "${var.data_disk_size}"
+    count                = "${var.agent_private_count}"
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags {
+        environment = "${var.instance_name}"
     }
 }
 
 resource "azurerm_virtual_machine" "dcosPrivateAgent" {
-  name                          = "dcosprivateagent${count.index}"
-  location                      = "${azurerm_resource_group.dcos.location}"
-  resource_group_name           = "${azurerm_resource_group.dcos.name}"
-  primary_network_interface_id  = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.id, count.index )}"
-  network_interface_ids         = [ "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.id, count.index )}",
-                                    "${element( azurerm_network_interface.dcosPrivateAgentMgmt.*.id, count.index )}" ]
-  vm_size                       = "${var.agent_private_size}"
-  availability_set_id           = "${azurerm_availability_set.privateAgentVMAvailSet.id}"
-  delete_os_disk_on_termination = true
-  count                         = "${var.agent_private_count}"
-  depends_on                    = ["azurerm_virtual_machine.master"]
-
-  lifecycle {
-    ignore_changes  = [ "storage_os_disk", "os_profile" ]
-  }
-
-  connection {
-    type         = "ssh"
-    host         = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address, count.index )}"
-    user         = "${var.vm_user}"
-    timeout      = "120s"
-    private_key  = "${file(var.private_key_path)}"
-    # Configuration for the Jumpbox
-    bastion_host        = "${azurerm_public_ip.dcosBootstrapNodePublicIp.ip_address}"
-    bastion_user        = "${var.vm_user}"
-    bastion_private_key = "${file(var.bootstrap_private_key_path)}"
-  }
-
-  # provisioners execute in order.
-  provisioner "remote-exec" {
-    inline = [
-      "sudo mkdir -p /opt/dcos",
-      "sudo chown ${var.vm_user} /opt/dcos",
-      "sudo chmod 755 -R /opt/dcos"
+    name                          = "dcosprivateagent${count.index}"
+    location                      = "${azurerm_resource_group.dcos.location}"
+    resource_group_name           = "${azurerm_resource_group.dcos.name}"
+    primary_network_interface_id  = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.id, count.index )}"
+    network_interface_ids         = [
+        "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.id, count.index )}",
+        "${element( azurerm_network_interface.dcosPrivateAgentMgmt.*.id, count.index )}",
+        "${element( azurerm_network_interface.dcosPrivateAgentStorage.*.id, count.index )}"
     ]
-  }
+    vm_size                       = "${var.agent_private_size}"
+    availability_set_id           = "${azurerm_availability_set.privateAgentVMAvailSet.id}"
+    delete_os_disk_on_termination = true
+    count                         = "${var.agent_private_count}"
+    depends_on                    = ["azurerm_virtual_machine.master"]
 
-  # Provision the VM itself.
-  provisioner "file" {
-    source      = "${path.module}/files/vm_setup.sh"
-    destination = "/opt/dcos/vm_setup.sh"
-  }
+    lifecycle {
+        ignore_changes  = [ "storage_os_disk", "os_profile" ]
+    }
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo chmod 755 /opt/dcos/vm_setup.sh",
-      "sudo /opt/dcos/vm_setup.sh"
-    ]
-  }
+    connection {
+        type         = "ssh"
+        host         = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address, count.index )}"
+        user         = "${var.vm_user}"
+        timeout      = "120s"
+        private_key  = "${file(var.private_key_path)}"
+        # Configuration for the Jumpbox
+        bastion_host        = "${azurerm_public_ip.dcosBootstrapNodePublicIp.ip_address}"
+        bastion_user        = "${var.vm_user}"
+        bastion_private_key = "${file(var.bootstrap_private_key_path)}"
+    }
 
-  # Now the provisioning for DC/OS
-  provisioner "file" {
-    source      = "${path.module}/files/install.sh"
-    destination = "/opt/dcos/install.sh"
-  }
+    # provisioners execute in order.
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mkdir -p /opt/dcos",
+            "sudo chown ${var.vm_user} /opt/dcos",
+            "sudo chmod 755 -R /opt/dcos"
+        ]
+    }
 
-  provisioner "file" {
-    source      = "${path.module}/files/50-docker.network"
-    destination = "/tmp/50-docker.network"
-  }
+    # Provision the VM itself.
+    provisioner "file" {
+        source      = "${path.module}/files/vm_setup.sh"
+        destination = "/opt/dcos/vm_setup.sh"
+    }
 
-  provisioner "remote-exec" {
-    inline = [
-      "sudo mv /tmp/50-docker.network /etc/systemd/network/",
-      "sudo chmod 644 /etc/systemd/network/50-docker.network",
-      "sudo systemctl restart systemd-networkd",
-      "chmod 755 /opt/dcos/install.sh",
-      "cd /opt/dcos && bash install.sh '172.16.0.8' 'slave'"
-    ]
-  }
+    provisioner "remote-exec" {
+        inline = [
+            "sudo chmod 755 /opt/dcos/vm_setup.sh",
+            "sudo /opt/dcos/vm_setup.sh"
+        ]
+    }
 
-  boot_diagnostics {
-    enabled     = true
-    storage_uri = "${azurerm_storage_account.dcos.primary_blob_endpoint}"
-  }
+    # Now the provisioning for DC/OS
+    provisioner "file" {
+        source      = "${path.module}/files/install.sh"
+        destination = "/opt/dcos/install.sh"
+    }
 
-  storage_image_reference {
-    publisher = "${var.image["publisher"]}"
-    offer     = "${var.image["offer"]}"
-    sku       = "${var.image["sku"]}"
-    version   = "${var.image["version"]}"
-  }
+    provisioner "file" {
+        source      = "${path.module}/files/50-docker.network"
+        destination = "/tmp/50-docker.network"
+    }
 
-  storage_os_disk {
-      name              = "dcosPrivateAgentOsDisk${count.index}"
-      caching           = "ReadWrite"
-      create_option     = "FromImage"
-      managed_disk_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
-      disk_size_gb      = 128
-  }
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mv /tmp/50-docker.network /etc/systemd/network/",
+            "sudo chmod 644 /etc/systemd/network/50-docker.network",
+            "sudo systemctl restart systemd-networkd",
+            "chmod 755 /opt/dcos/install.sh",
+            "cd /opt/dcos && bash install.sh '172.16.0.8' 'slave'"
+        ]
+    }
 
-  os_profile {
-      computer_name  = "dcosprivateagent${count.index}"
-      admin_username = "${var.vm_user}"
-      admin_password = "${uuid()}"
-      # According to the Azure Terraform Documentation
-      # and https://docs.microsoft.com/en-us/azure/virtual-machines/linux/using-cloud-init
-      # Cloud init is supported on ubuntu and coreos for custom_data.
-      # However, according to CoreOS, their Ignition format is preferred.
-      # cloud-init on Azure appears to be the deprecated coreos-cloudinit
-      # Therefore we are going to try ignition.
-      custom_data    = "${element( data.template_file.coreos_private_ignition.*.rendered, count.index ) }"
-  }
+    boot_diagnostics {
+        enabled     = true
+        storage_uri = "${azurerm_storage_account.dcos.primary_blob_endpoint}"
+    }
 
-  os_profile_linux_config {
-      disable_password_authentication = true
-      ssh_keys {
-        path     = "/home/${var.vm_user}/.ssh/authorized_keys"
-        key_data = "${file(var.public_key_path)}"
-      }
-  }
+    storage_image_reference {
+        publisher = "${var.image["publisher"]}"
+        offer     = "${var.image["offer"]}"
+        sku       = "${var.image["sku"]}"
+        version   = "${var.image["version"]}"
+    }
 
-  tags {
-      environment = "${var.instance_name}"
-  }
+    storage_os_disk {
+        name              = "dcosPrivateAgentOsDisk${count.index}"
+        caching           = "ReadWrite"
+        create_option     = "FromImage"
+        managed_disk_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+        disk_size_gb      = "${var.os_disk_size}"
+    }
+
+    storage_data_disk {
+        name              = "dcosPrivateAgentDataDisk${count.index}"
+        caching           = "ReadOnly"
+        create_option     = "Attach"
+        managed_disk_id   = "${ element( azurerm_managed_disk.storageDataDiskData.*.id, count.index ) }"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.data_disk_size}"
+        lun               = 0
+    }
+
+    os_profile {
+        computer_name  = "dcosprivateagent${count.index}"
+        admin_username = "${var.vm_user}"
+        admin_password = "${uuid()}"
+        # According to the Azure Terraform Documentation
+        # and https://docs.microsoft.com/en-us/azure/virtual-machines/linux/using-cloud-init
+        # Cloud init is supported on ubuntu and coreos for custom_data.
+        # However, according to CoreOS, their Ignition format is preferred.
+        # cloud-init on Azure appears to be the deprecated coreos-cloudinit
+        # Therefore we are going to try ignition.
+        custom_data    = "${element( data.template_file.coreos_private_ignition.*.rendered, count.index ) }"
+    }
+
+    os_profile_linux_config {
+        disable_password_authentication = true
+        ssh_keys {
+            path     = "/home/${var.vm_user}/.ssh/authorized_keys"
+            key_data = "${file(var.public_key_path)}"
+        }
+    }
+
+    tags {
+        environment = "${var.instance_name}"
+    }
 
 }

@@ -13,7 +13,7 @@ resource "azurerm_subnet" "dcosMgmt" {
     resource_group_name       = "${azurerm_resource_group.dcos.name}"
     virtual_network_name      = "${azurerm_virtual_network.dcos.name}"
     network_security_group_id = "${azurerm_network_security_group.dcosmgmt.id}"
-    address_prefix            = "10.224.0.0/11"
+    address_prefix            = "10.64.0.0/11"
 }
 
 resource "azurerm_network_security_group" "dcosmgmt" {

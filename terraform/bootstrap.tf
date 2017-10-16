@@ -39,7 +39,7 @@ resource "azurerm_network_interface" "dcosBootstrapMgmtIF0" {
     ip_configuration {
         name                          = "ipconfig2"
         private_ip_address_allocation = "static"
-        private_ip_address            = "10.224.0.10"
+        private_ip_address            = "10.64.0.8"
         subnet_id                     = "${azurerm_subnet.dcosMgmt.id}"
     }
 }
@@ -54,8 +54,10 @@ resource "azurerm_virtual_machine" "dcosBootstrapNodeVM" {
     name                          = "dcosBootstrap"
     location                      = "${azurerm_resource_group.dcos.location}"
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
-    network_interface_ids         = [ "${azurerm_network_interface.dcosBootstrapNodeIF0.id}",
-        "${azurerm_network_interface.dcosBootstrapMgmtIF0.id}" ]
+    network_interface_ids         = [
+        "${azurerm_network_interface.dcosBootstrapNodeIF0.id}",
+        "${azurerm_network_interface.dcosBootstrapMgmtIF0.id}"
+    ]
     primary_network_interface_id  = "${azurerm_network_interface.dcosBootstrapNodeIF0.id}"
     vm_size                       = "${var.bootstrap_size}"
     delete_os_disk_on_termination = true

@@ -49,7 +49,7 @@ resource "azurerm_network_interface" "masterMgmt" {
     ip_configuration {
         name                                    = "ipConfigMgmt"
         private_ip_address_allocation           = "static"
-        private_ip_address                      = "10.224.10.${var.master_private_ip_address_index + count.index}"
+        private_ip_address                      = "10.66.0.${var.master_private_ip_address_index + count.index}"
         subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"
     }
 }
@@ -60,8 +60,10 @@ resource "azurerm_virtual_machine" "master" {
     count                         = "${var.master_count}"
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
     primary_network_interface_id  = "${element(azurerm_network_interface.master.*.id, count.index)}"
-    network_interface_ids         = [ "${element(azurerm_network_interface.master.*.id, count.index)}",
-        "${element(azurerm_network_interface.masterMgmt.*.id, count.index)}" ]
+    network_interface_ids         = [
+        "${element(azurerm_network_interface.master.*.id, count.index)}",
+        "${element(azurerm_network_interface.masterMgmt.*.id, count.index)}"
+    ]
     vm_size                       = "${var.master_size}"
     availability_set_id           = "${azurerm_availability_set.masterVMAvailSet.id}"
     delete_os_disk_on_termination = true
@@ -133,7 +135,7 @@ resource "azurerm_virtual_machine" "master" {
         caching           = "ReadWrite"
         create_option     = "FromImage"
         managed_disk_type = "${lookup( var.vm_type_to_os_disk_type, var.master_size, "Premium_LRS" )}"
-        disk_size_gb      = 64
+        disk_size_gb      = "${var.os_disk_size}"
     }
 
     os_profile {

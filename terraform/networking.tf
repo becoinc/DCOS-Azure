@@ -12,7 +12,13 @@ resource "azurerm_virtual_network" "dcos" {
     name                = "vnet${azurerm_resource_group.dcos.name}"
     resource_group_name = "${azurerm_resource_group.dcos.name}"
     location            = "${azurerm_resource_group.dcos.location}"
-    address_space       = ["172.16.0.0/24", "10.0.0.0/11", "10.32.0.0/11", "10.224.0.0/11" ]
+    address_space       = [
+        "172.16.0.0/24", # Master Primary Subnet
+        "10.0.0.0/11",   # Public Agent
+        "10.32.0.0/11",  # Private Agent - Primary Application Data (DC/OS) Subnet
+        "10.64.0.0/11",  # Private Agent - Control/Mgmt Subnet - see mgmt_net.tf
+        "10.96.0.0/11",  # Private Agent - Storage Data Subnet - see data_net.tf
+    ]
     lifecycle {
         prevent_destroy = true
     }
@@ -39,6 +45,7 @@ resource "azurerm_subnet" "dcospublic" {
     network_security_group_id = "${azurerm_network_security_group.dcospublic.id}"
     address_prefix            = "10.0.0.0/11"
 }
+
 resource "azurerm_subnet" "dcosprivate" {
     name                      = "dcos-agentPrivateSubnet"
     resource_group_name       = "${azurerm_resource_group.dcos.name}"

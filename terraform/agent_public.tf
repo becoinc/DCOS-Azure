@@ -45,7 +45,7 @@ resource "azurerm_network_interface" "dcosPublicAgentMgmt" {
         name                                    = "publicAgentMgMtIPConfig"
         subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"
         private_ip_address_allocation           = "static"
-        private_ip_address                      = "10.225.${count.index / 254}.${ (count.index + 10) % 254 }"
+        private_ip_address                      = "10.65.${count.index / 254}.${ (count.index + 10) % 254 }"
     }
 }
 
@@ -138,7 +138,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
       caching           = "ReadWrite"
       create_option     = "FromImage"
       managed_disk_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_public_size, "Premium_LRS" )}"
-      disk_size_gb      = 128
+      disk_size_gb      = "${var.os_disk_size}"
   }
 
   os_profile {
