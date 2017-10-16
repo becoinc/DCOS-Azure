@@ -69,7 +69,7 @@ resource "azurerm_network_interface" "dcosPrivateAgentStorage" {
  * b/c Terraform and Azure behave better on recreate that way.
  */
 resource "azurerm_managed_disk" "storageDataDiskData" {
-    name                 = "dcosStorageDataDisk${count.index}"
+    name                 = "dcosPrivateAgentStorageDataDisk${count.index}"
     location             = "${azurerm_resource_group.dcos.location}"
     resource_group_name  = "${azurerm_resource_group.dcos.name}"
     storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
@@ -182,7 +182,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     }
 
     storage_data_disk {
-        name              = "dcosPrivateAgentDataDisk${count.index}"
+        name              = "dcosPrivateAgentStorageDataDisk${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_id   = "${ element( azurerm_managed_disk.storageDataDiskData.*.id, count.index ) }"
