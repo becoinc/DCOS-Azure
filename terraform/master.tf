@@ -76,7 +76,7 @@ resource "azurerm_virtual_machine" "master" {
 
     connection {
         type         = "ssh"
-        host         = "${element( azurerm_network_interface.dcosPublicAgentIF0.*.private_ip_address, count.index )}"
+        host         = "${element( azurerm_network_interface.master.*.private_ip_address, count.index )}"
         user         = "${var.vm_user}"
         timeout      = "120s"
         private_key  = "${file(var.private_key_path)}"
