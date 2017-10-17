@@ -142,7 +142,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     # Now the provisioning for DC/OS
     provisioner "file" {
-        source      = "${path.module}/files/install.sh"
+        source      = "${path.module}/files/install_private_agent.sh"
         destination = "/opt/dcos/install_private_agent.sh"
     }
 
