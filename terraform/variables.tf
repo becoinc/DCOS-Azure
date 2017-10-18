@@ -112,17 +112,22 @@ variable os_disk_size {
     description = "The size in GB of the Operating System Disks."
 }
 
+/**
+ * Azure Managed Disks
+ *
+ * These are typically premium tier disks. Anything smaller than 512GB (P20)
+ * will have pretty dismal performance for serious i/o loads.
+ *
+ * See https://docs.microsoft.com/en-us/azure/storage/common/storage-premium-storage
+ *
+ */
 variable data_disk_size {
-    default = 1024
+    default = 512
     description = "The size in GB of the Attached Data Disk. - Only Private Agents have this data disk."
 }
 
 variable "agent_private_size" {
     default = "Standard_D2_v2_Promo"
-}
-
-variable "agent_private_ip_address_index" {
-    default = "15"
 }
 
 /* Public Agents */
@@ -134,6 +139,3 @@ variable "agent_public_size" {
     default = "Standard_D2_v2_Promo"
 }
 
-variable "agent_public_private_ip_address_index" {
-    default = "200"
-}

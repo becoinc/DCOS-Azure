@@ -68,8 +68,30 @@ resource "azurerm_network_interface" "dcosPrivateAgentStorage" {
  * These are created separately instead of inline with the VM
  * b/c Terraform and Azure behave better on recreate that way.
  */
-resource "azurerm_managed_disk" "storageDataDiskData" {
-    name                 = "dcosPrivateAgentStorageDataDisk${count.index}"
+resource "azurerm_managed_disk" "storageDataDisk0" {
+    name                 = "dcosPrivateAgentStorageDataDisk0-${count.index}"
+    location             = "${azurerm_resource_group.dcos.location}"
+    resource_group_name  = "${azurerm_resource_group.dcos.name}"
+    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+    create_option        = "Empty"
+    disk_size_gb         = "${var.data_disk_size}"
+    count                = "${var.agent_private_count}"
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags {
+        environment = "${var.instance_name}"
+    }
+}
+
+/*
+ * These are created separately instead of inline with the VM
+ * b/c Terraform and Azure behave better on recreate that way.
+ */
+resource "azurerm_managed_disk" "storageDataDisk1" {
+    name                 = "dcosPrivateAgentStorageDataDisk1-${count.index}"
     location             = "${azurerm_resource_group.dcos.location}"
     resource_group_name  = "${azurerm_resource_group.dcos.name}"
     storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
@@ -182,13 +204,23 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     }
 
     storage_data_disk {
-        name              = "dcosPrivateAgentStorageDataDisk${count.index}"
+        name              = "dcosPrivateAgentStorageDataDisk0-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
-        managed_disk_id   = "${ element( azurerm_managed_disk.storageDataDiskData.*.id, count.index ) }"
+        managed_disk_id   = "${ element( azurerm_managed_disk.storageDataDisk0.*.id, count.index ) }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.data_disk_size}"
         lun               = 0
+    }
+
+    storage_data_disk {
+        name              = "dcosPrivateAgentStorageDataDisk1-${count.index}"
+        caching           = "ReadOnly"
+        create_option     = "Attach"
+        managed_disk_id   = "${ element( azurerm_managed_disk.storageDataDisk1.*.id, count.index ) }"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.data_disk_size}"
+        lun               = 1
     }
 
     os_profile {
