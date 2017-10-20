@@ -90,6 +90,7 @@ resource "azurerm_managed_disk" "storageDataDisk0" {
  * These are created separately instead of inline with the VM
  * b/c Terraform and Azure behave better on recreate that way.
  */
+/*
 resource "azurerm_managed_disk" "storageDataDisk1" {
     name                 = "dcosPrivateAgentStorageDataDisk1-${count.index}"
     location             = "${azurerm_resource_group.dcos.location}"
@@ -107,6 +108,7 @@ resource "azurerm_managed_disk" "storageDataDisk1" {
         environment = "${var.instance_name}"
     }
 }
+*/
 
 resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     name                          = "dcosprivateagent${count.index}"
@@ -213,6 +215,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         lun               = 0
     }
 
+    /*
     storage_data_disk {
         name              = "dcosPrivateAgentStorageDataDisk1-${count.index}"
         caching           = "ReadOnly"
@@ -222,6 +225,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         disk_size_gb      = "${var.data_disk_size}"
         lun               = 1
     }
+    */
 
     os_profile {
         computer_name  = "dcosprivateagent${count.index}"
