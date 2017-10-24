@@ -1,4 +1,4 @@
-Deploy DC/OS 1.9 running CoreOS on Microsoft Azure using Terraform
+Deploy DC/OS 1.10.0 running CoreOS on Microsoft Azure using Terraform
 ==================
 
 ![](./resources/imgs/ninjaterracat.png)
@@ -25,7 +25,7 @@ VM size and/or VM count.
 * It is assumed that you have a functioning Azure client installed. You can do so [here](https://github.com/Azure/azure-cli)
 
 * Install [Terraform](https://www.terraform.io/downloads.html). This was
-tested with `v0.10.0` on macOS Sierra.
+tested with `v0.10.7` on macOS Sierra. Using `v0.3.1` of the AzureRM provider.
 
 * Create credentials for Terraform to access Azure.
 To do so, you will need to following environment variables :
