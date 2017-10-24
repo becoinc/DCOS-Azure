@@ -126,6 +126,11 @@ variable data_disk_size {
     description = "The size in GB of the Attached Data Disk. - Only Private Agents have this data disk."
 }
 
+variable px_journal_disk_size {
+    default = 512
+    description = "The size in GB of the Attached Portworx Journal Disk - Only Private Agents have this data disk."
+}
+
 variable "agent_private_size" {
     default = "Standard_D2_v2_Promo"
 }
