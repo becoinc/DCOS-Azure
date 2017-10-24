@@ -18,6 +18,14 @@ data "template_file" "coreos_private_ignition" {
     }
 }
 
+data "template_file" "portworx_config_json" {
+    template = "${file( "${path.module}/files/px_config.json.tpl" )}"
+    count    = "${var.agent_private_count}"
+    vars     = {
+        portworx_cluster_id  = "${var.portworx_cluster_id}"
+        portworx_license_key = "${var.portworx_license_key}"
+    }
+}
 
 # The first - eth0 - network interface for the Private agents
 resource "azurerm_network_interface" "dcosPrivateAgentIF0" {

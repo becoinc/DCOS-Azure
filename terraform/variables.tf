@@ -139,3 +139,12 @@ variable "agent_public_size" {
     default = "Standard_D2_v2_Promo"
 }
 
+variable "portworx_cluster_id" {
+    type        = "string"
+    description = "The UUID of the Portworx Cluster."
+}
+
+variable "portworx_license_key" {
+    type        = "string"
+    description = "The License Key for the Portworx Cluster."
+}
