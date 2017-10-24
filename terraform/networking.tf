@@ -149,7 +149,7 @@ resource "azurerm_network_security_group" "dcosmaster" {
         priority                   = 200
         direction                  = "Inbound"
         access                     = "Allow"
-        protocol                   = "Tcp"
+        protocol                   = "tcp"
         source_port_range          = "*"
         destination_port_range     = "22"
         source_address_prefix      = "*"
@@ -162,7 +162,7 @@ resource "azurerm_network_security_group" "dcosmaster" {
         priority                   = 210
         direction                  = "Inbound"
         access                     = "Allow"
-        protocol                   = "TCP"
+        protocol                   = "tcp"
         source_port_range          = "*"
         destination_port_range     = "80"
         source_address_prefix      = "*"
@@ -175,7 +175,7 @@ resource "azurerm_network_security_group" "dcosmaster" {
         priority                   = 220
         direction                  = "Inbound"
         access                     = "Allow"
-        protocol                   = "Tcp"
+        protocol                   = "tcp"
         source_port_range          = "*"
         destination_port_range     = "443"
         source_address_prefix      = "Internet"
