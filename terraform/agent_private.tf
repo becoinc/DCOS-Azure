@@ -18,15 +18,6 @@ data "template_file" "coreos_private_ignition" {
     }
 }
 
-data "template_file" "portworx_config_json" {
-    template = "${file( "${path.module}/files/px_config.json.tpl" )}"
-    count    = "${var.agent_private_count}"
-    vars     = {
-        portworx_cluster_id  = "${var.portworx_cluster_id}"
-        portworx_license_key = "${var.portworx_license_key}"
-    }
-}
-
 # The first - eth0 - network interface for the Private agents
 resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
     name                    = "dcosPrivateAgentIF${count.index}-0"
@@ -97,14 +88,17 @@ resource "azurerm_managed_disk" "storageDataDisk0" {
 /*
  * These are created separately instead of inline with the VM
  * b/c Terraform and Azure behave better on recreate that way.
+ *
+ * This is an extra data disk attached to the VMs.
+ *
  */
-resource "azurerm_managed_disk" "portworxjournaldisk" {
+resource "azurerm_managed_disk" "extradatadisk" {
     name                 = "dcosPrivateAgentPxJournalDisk-${count.index}"
     location             = "${azurerm_resource_group.dcos.location}"
     resource_group_name  = "${azurerm_resource_group.dcos.name}"
     storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
     create_option        = "Empty"
-    disk_size_gb         = "${var.px_journal_disk_size}"
+    disk_size_gb         = "${var.extra_disk_size}"
     count                = "${var.agent_private_count}"
 
     lifecycle {
@@ -226,9 +220,9 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         name              = "dcosPrivateAgentPxJournalDisk-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
-        managed_disk_id   = "${ element( azurerm_managed_disk.portworxjournaldisk.*.id, count.index ) }"
+        managed_disk_id   = "${ element( azurerm_managed_disk.extradatadisk.*.id, count.index ) }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
-        disk_size_gb      = "${var.px_journal_disk_size}"
+        disk_size_gb      = "${var.extra_disk_size}"
         lun               = 1
     }
 

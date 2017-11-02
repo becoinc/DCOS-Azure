@@ -63,6 +63,7 @@ EOF
 }
 
 variable "master_port" {
+    type = "map"
     default = {
         "1" = 2200
         "2" = 2201
@@ -126,7 +127,7 @@ variable data_disk_size {
     description = "The size in GB of the Attached Data Disk. - Only Private Agents have this data disk."
 }
 
-variable px_journal_disk_size {
+variable extra_disk_size {
     default = 512
     description = "The size in GB of the Attached Portworx Journal Disk - Only Private Agents have this data disk."
 }
@@ -142,14 +143,4 @@ variable "agent_public_count" {
 
 variable "agent_public_size" {
     default = "Standard_D2_v2_Promo"
-}
-
-variable "portworx_cluster_id" {
-    type        = "string"
-    description = "The UUID of the Portworx Cluster."
-}
-
-variable "portworx_license_key" {
-    type        = "string"
-    description = "The License Key for the Portworx Cluster."
 }
