@@ -92,7 +92,7 @@ resource "azurerm_managed_disk" "storageDataDisk0" {
  * This is an extra data disk attached to the VMs.
  *
  */
-resource "azurerm_managed_disk" "extradatadisk" {
+resource "azurerm_managed_disk" "portworxjournaldisk" {
     name                 = "dcosPrivateAgentPxJournalDisk-${count.index}"
     location             = "${azurerm_resource_group.dcos.location}"
     resource_group_name  = "${azurerm_resource_group.dcos.name}"
