@@ -220,7 +220,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         name              = "dcosPrivateAgentPxJournalDisk-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
-        managed_disk_id   = "${ element( azurerm_managed_disk.extradatadisk.*.id, count.index ) }"
+        managed_disk_id   = "${ element( azurerm_managed_disk.portworxjournaldisk.*.id, count.index ) }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.extra_disk_size}"
         lun               = 1
