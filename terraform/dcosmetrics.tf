@@ -102,7 +102,7 @@ resource "null_resource" "dcos_metrics_prometheus_public" {
     }
 
     provisioner "file" {
-        source      = "${path.module}/files/dcos-metrics-prometheus-master.service"
+        source      = "${path.module}/files/dcos-metrics-prometheus-agent.service"
         destination = "/opt/dcos/dcos-metrics-prometheus-agent.service"
     }
 
