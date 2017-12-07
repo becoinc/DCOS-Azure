@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 BOOTSTRAP_URL=$1
 ROLE=$2
 

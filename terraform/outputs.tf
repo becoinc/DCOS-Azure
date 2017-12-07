@@ -53,3 +53,8 @@ output "Primary_Access_Key" {
 output "private_agent_subnet" {
   value = "${azurerm_subnet.dcosprivate.id}"
 }
+
+# This is the output for the management subnet.
+output "management_subnet" {
+  value = "${azurerm_subnet.dcosMgmt.id}"
+}

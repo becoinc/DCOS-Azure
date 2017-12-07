@@ -8,12 +8,23 @@
 # License: See included LICENSE.md
 #
 
+data "template_file" "coreos_public_ignition" {
+    template = "${file( "${path.module}/files/agent_setup.ign.tpl" ) }"
+    count    = "${var.agent_public_count}"
+    vars = {
+        cluster_name = "${azurerm_resource_group.dcos.name}"
+        my_ip        = "${element( azurerm_network_interface.dcosPublicAgentIF0.*.private_ip_address, count.index ) }"
+        vm_hostname  = "dcospublicagent${count.index}"
+    }
+}
+
 # The first network interface for the public agents
 resource "azurerm_network_interface" "dcosPublicAgentIF0" {
-    name                = "dcosPublicAgentIF${count.index}-0"
-    location            = "${azurerm_resource_group.dcos.location}"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
-    count               = "${var.agent_public_count}"
+    name                    = "dcosPublicAgentIF${count.index}-0"
+    location                = "${azurerm_resource_group.dcos.location}"
+    resource_group_name     = "${azurerm_resource_group.dcos.name}"
+    count                   = "${var.agent_public_count}"
+
     ip_configuration {
         name                                    = "publicAgentIPConfig"
         subnet_id                               = "${azurerm_subnet.dcospublic.id}"
@@ -25,12 +36,26 @@ resource "azurerm_network_interface" "dcosPublicAgentIF0" {
     }
 }
 
+resource "azurerm_network_interface" "dcosPublicAgentMgmt" {
+    name                = "dcosPublicAgentMgmtIF${count.index}-0"
+    location            = "${azurerm_resource_group.dcos.location}"
+    resource_group_name = "${azurerm_resource_group.dcos.name}"
+    count               = "${var.agent_public_count}"
+    ip_configuration {
+        name                                    = "publicAgentMgMtIPConfig"
+        subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"
+        private_ip_address_allocation           = "static"
+        private_ip_address                      = "10.65.${count.index / 254}.${ (count.index + 10) % 254 }"
+    }
+}
+
 resource "azurerm_virtual_machine" "dcosPublicAgent" {
-  name                          = "dcosPublicAgent${count.index}"
+  name                          = "dcospublicagent${count.index}"
   location                      = "${azurerm_resource_group.dcos.location}"
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
   primary_network_interface_id  = "${element( azurerm_network_interface.dcosPublicAgentIF0.*.id, count.index )}"
-  network_interface_ids         = [ "${element( azurerm_network_interface.dcosPublicAgentIF0.*.id, count.index )}" ]
+  network_interface_ids         = [ "${element( azurerm_network_interface.dcosPublicAgentIF0.*.id, count.index )}",
+                                    "${element( azurerm_network_interface.dcosPublicAgentMgmt.*.id, count.index )}" ]
   vm_size                       = "${var.agent_public_size}"
   availability_set_id           = "${azurerm_availability_set.publicAgentVMAvailSet.id}"
   delete_os_disk_on_termination = true
@@ -113,10 +138,11 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
       caching           = "ReadWrite"
       create_option     = "FromImage"
       managed_disk_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_public_size, "Premium_LRS" )}"
+      disk_size_gb      = "${var.os_disk_size}"
   }
 
   os_profile {
-      computer_name  = "dcosPublicAgent${count.index}"
+      computer_name  = "dcospublicagent${count.index}"
       admin_username = "${var.vm_user}"
       admin_password = "${uuid()}"
       # According to the Azure Terraform Documentation
@@ -125,7 +151,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
       # However, according to CoreOS, their Ignition format is preferred.
       # cloud-init on Azure appears to be the deprecated coreos-cloudinit
       # Therefore we are going to try ignition.
-      custom_data    = "${base64encode(file( "${path.module}/files/disableautoreboot.ign" ))}"
+      custom_data    = "${element( data.template_file.coreos_public_ignition.*.rendered, count.index ) }"
   }
 
   os_profile_linux_config {

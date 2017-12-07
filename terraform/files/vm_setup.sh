@@ -22,6 +22,16 @@ sed -i -e "s/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=${SWAP_SIZE}/" ${
 systemctl restart waagent
 
 #############################################################################
+# Docker config
+#
+#############################################################################
+
+# On CoreOS, the docker daemon is socket started by default.
+# this means on reboot any --restart=always containers don't
+# start. The below fixes this.
+systemctl enable docker
+
+#############################################################################
 # Install and setup cAdvisor
 # See https://docs.docker.com/engine/admin/resource_constraints/#configure-the-default-cfs-scheduler
 # for details on setting the cpu and memory limits in Docker.
