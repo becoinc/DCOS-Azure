@@ -27,7 +27,7 @@ systemctl restart waagent
 # See https://docs.microsoft.com/en-us/azure/virtual-machines/linux/troubleshoot-device-names-problems
 #############################################################################
 # Put the 66-azure-storage.rules file is in place already...
-cat <<EOF > /etc/udev/rules.d/66-azure-storage.rules
+cat << 'EOF' > /etc/udev/rules.d/66-azure-storage.rules
 ACTION=="add|change", SUBSYSTEM=="block", ENV{ID_VENDOR}=="Msft", ENV{ID_MODEL}=="Virtual_Disk", GOTO="azure_disk"
 GOTO="azure_end"
 
