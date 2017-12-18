@@ -27,8 +27,8 @@ master_list:
 # DNS on Azure is provided by the 168.63.129.16 Virtual IP
 resolvers:
 - 168.63.129.16
-- 8.8.8.8
-- 8.8.4.4
+#- 8.8.8.8
+#- 8.8.4.4
 platform: azure
 enable_docker_gc: 'true'
 oauth_enabled: 'false'
