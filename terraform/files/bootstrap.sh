@@ -7,11 +7,11 @@ BOOTSTRAP_URL=$1
 DCOS_DOWNLOAD_URL=$2
 DCOS_PASSWORD_HASH='$6$rounds=656000$83725EIL6U0tE/PU$1cJ9wGZ47q2QTQEZbMWK.uuXyB5CUirWRfBlQTDMnFsvH5l5sI50tdlH7TKYTzaPdVbsxix9NWrim1.y3Cfwf/' # Passw0rd
 
-cd /var/tmp
+cd /opt/dcos
 
-mkdir -p /var/tmp/genconf
+mkdir -p /opt/dcos/genconf
 
-cat <<EOF > "/var/tmp/genconf/config.yaml"
+cat <<EOF > "/opt/dcos/genconf/config.yaml"
 ---
 bootstrap_url: http://${BOOTSTRAP_URL}:80
 cluster_name: 'dcos'
@@ -38,7 +38,7 @@ superuser_password_hash: '${DCOS_PASSWORD_HASH}'
 enable_docker_gc: 'true'
 EOF
 
-cat <<'EOF' > "/var/tmp/genconf/ip-detect"
+cat <<'EOF' > "/opt/dcos/genconf/ip-detect"
 #!/usr/bin/env bash
 set -o nounset -o errexit
 ip route get 1 | awk '{print $NF;exit}'
@@ -49,4 +49,4 @@ curl -O "${DCOS_DOWNLOAD_URL}"
 
 sudo bash dcos_generate_config.sh
 
-sudo docker run -d -p 80:80 -v /var/tmp/genconf/serve:/usr/share/nginx/html:ro nginx:alpine
+sudo docker run -d -p 80:80 -v /opt/dcos/genconf/serve:/usr/share/nginx/html:ro nginx:alpine
