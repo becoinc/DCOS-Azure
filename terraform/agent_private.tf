@@ -88,6 +88,28 @@ resource "azurerm_managed_disk" "storageDataDisk0" {
 /*
  * These are created separately instead of inline with the VM
  * b/c Terraform and Azure behave better on recreate that way.
+ */
+resource "azurerm_managed_disk" "storageDataDisk1" {
+    name                 = "dcosPrivateAgentStorageDataDisk1-${count.index}"
+    location             = "${azurerm_resource_group.dcos.location}"
+    resource_group_name  = "${azurerm_resource_group.dcos.name}"
+    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+    create_option        = "Empty"
+    disk_size_gb         = "${var.data_disk_size}"
+    count                = "${var.agent_private_count}"
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags {
+        environment = "${var.instance_name}"
+    }
+}
+
+/*
+ * These are created separately instead of inline with the VM
+ * b/c Terraform and Azure behave better on recreate that way.
  *
  * This is an extra data disk attached to the VMs.
  *
@@ -128,7 +150,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     depends_on                    = ["azurerm_virtual_machine.master"]
 
     lifecycle {
-        ignore_changes  = [ "storage_os_disk", "os_profile" ]
+        ignore_changes  = [ "admin_password" ]
     }
 
     connection {
@@ -217,13 +239,23 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     }
 
     storage_data_disk {
+        name              = "dcosPrivateAgentStorageDataDisk1-${count.index}"
+        caching           = "ReadOnly"
+        create_option     = "Attach"
+        managed_disk_id   = "${ element( azurerm_managed_disk.storageDataDisk1.*.id, count.index ) }"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.data_disk_size}"
+        lun               = 1
+    }
+
+    storage_data_disk {
         name              = "dcosPrivateAgentPxJournalDisk-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_id   = "${ element( azurerm_managed_disk.portworxjournaldisk.*.id, count.index ) }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.extra_disk_size}"
-        lun               = 1
+        lun               = 2
     }
 
     os_profile {
