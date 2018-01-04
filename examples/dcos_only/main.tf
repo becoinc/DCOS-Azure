@@ -19,11 +19,23 @@
 */
 
 provider "azurerm" {
-  version = "~> 0.1"
+  version = "~> 0.3.3"
 }
 
 provider "template" {
-  version = "~> 0.1"
+  version = "~> 1.0.0"
+}
+
+provider "null" {
+   version = "~> 0.1"
+}
+
+provider "local" {
+   version = "~> 0.1"
+}
+
+provider "external" {
+   version = "~> 1.0"
 }
 
 variable "instance_config" {
