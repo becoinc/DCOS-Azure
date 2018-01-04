@@ -13,7 +13,7 @@ data "template_file" "coreos_public_ignition" {
     count    = "${var.agent_public_count}"
     vars = {
         cluster_name = "${azurerm_resource_group.dcos.name}"
-        my_ip        = "${element( azurerm_network_interface.dcosPublicAgentIF0.*.private_ip_address, count.index ) }"
+        my_ip        = "${ azurerm_network_interface.dcosPublicAgentIF0.*.private_ip_address[ count.index ] }"
         vm_hostname  = "dcospublicagent${count.index}"
     }
 }
@@ -53,9 +53,9 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
   name                          = "dcospublicagent${count.index}"
   location                      = "${azurerm_resource_group.dcos.location}"
   resource_group_name           = "${azurerm_resource_group.dcos.name}"
-  primary_network_interface_id  = "${element( azurerm_network_interface.dcosPublicAgentIF0.*.id, count.index )}"
-  network_interface_ids         = [ "${element( azurerm_network_interface.dcosPublicAgentIF0.*.id, count.index )}",
-                                    "${element( azurerm_network_interface.dcosPublicAgentMgmt.*.id, count.index )}" ]
+  primary_network_interface_id  = "${ azurerm_network_interface.dcosPublicAgentIF0.*.id[ count.index ] }"
+  network_interface_ids         = [ "${ azurerm_network_interface.dcosPublicAgentIF0.*.id[ count.index ] }",
+                                    "${ azurerm_network_interface.dcosPublicAgentMgmt.*.id[ count.index ] }" ]
   vm_size                       = "${var.agent_public_size}"
   availability_set_id           = "${azurerm_availability_set.publicAgentVMAvailSet.id}"
   delete_os_disk_on_termination = true
@@ -68,7 +68,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
 
   connection {
     type         = "ssh"
-    host         = "${element( azurerm_network_interface.dcosPublicAgentIF0.*.private_ip_address, count.index )}"
+    host         = "${ azurerm_network_interface.dcosPublicAgentIF0.*.private_ip_address[ count.index ] }"
     user         = "${var.vm_user}"
     timeout      = "120s"
     private_key  = "${file(var.private_key_path)}"
@@ -151,7 +151,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
       # However, according to CoreOS, their Ignition format is preferred.
       # cloud-init on Azure appears to be the deprecated coreos-cloudinit
       # Therefore we are going to try ignition.
-      custom_data    = "${element( data.template_file.coreos_public_ignition.*.rendered, count.index ) }"
+      custom_data    = "${ data.template_file.coreos_public_ignition.*.rendered[ count.index ] }"
   }
 
   os_profile_linux_config {
@@ -182,7 +182,7 @@ data "template_file" "public_agent_lad_settings" {
   count    = "${var.agent_public_count}"
   vars = {
     DIAGNOSTIC_STORAGE_ACCOUNT = "${azurerm_storage_account.dcosAzureLinuxDiag.name}"
-    VM_RESOURCE_ID             = "${element( azurerm_virtual_machine.dcosPublicAgent.*.id, count.index )}"
+    VM_RESOURCE_ID             = "${( azurerm_virtual_machine.dcosPublicAgent.*.id, count.index )}"
   }
 }
 
@@ -190,7 +190,7 @@ resource "azurerm_virtual_machine_extension" "dcosPublicAgentDiagExt" {
   name                        = "dcosPublicAgentDiagExt"
   location                    = "${azurerm_resource_group.dcos.location}"
   resource_group_name         = "${azurerm_resource_group.dcos.name}"
-  virtual_machine_name        = "${element( azurerm_virtual_machine.dcosPublicAgent.*.name, count.index )}"
+  virtual_machine_name        = "${( azurerm_virtual_machine.dcosPublicAgent.*.name, count.index )}"
   publisher                   = "Microsoft.Azure.Diagnostics"
   type                        = "LinuxDiagnostic"
   type_handler_version        = "3.0"
@@ -206,7 +206,7 @@ resource "azurerm_virtual_machine_extension" "dcosPublicAgentDiagExt" {
   }
 PROTSETTINGS
 
-  settings = "${element( data.template_file.public_agent_lad_settings.*.rendered, count.index )}"
+  settings = "${( data.template_file.public_agent_lad_settings.*.rendered, count.index )}"
 
   tags = {
     environment = "${var.instance_name}"

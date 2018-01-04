@@ -16,7 +16,7 @@ data "template_file" "coreos_master_ignition" {
     vars = {
         cluster_name = "${azurerm_resource_group.dcos.name}"
         master_num   = "${count.index}"
-        my_ip        = "${element( azurerm_network_interface.master.*.private_ip_address, count.index ) }"
+        my_ip        = "${ azurerm_network_interface.master.*.private_ip_address[ count.index ] }"
         vm_hostname  = "dcosmaster${count.index}"
     }
 }
@@ -35,7 +35,7 @@ resource "azurerm_network_interface" "master" {
         subnet_id                               = "${azurerm_subnet.dcosmaster.id}"
         // JZ - Removed because we have a bastion host.
         //load_balancer_backend_address_pools_ids = ["${azurerm_lb_backend_address_pool.master.id}"]
-        //load_balancer_inbound_nat_rules_ids     = ["${element(azurerm_lb_nat_rule.masterlbrulessh.*.id, count.index)}"]
+        //load_balancer_inbound_nat_rules_ids     = ["${(azurerm_lb_nat_rule.masterlbrulessh.*.id, count.index)}"]
     }
 }
 
@@ -44,8 +44,8 @@ resource "azurerm_virtual_machine" "master" {
     location                      = "${azurerm_resource_group.dcos.location}"
     count                         = "${var.master_count}"
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
-    primary_network_interface_id  = "${element(azurerm_network_interface.master.*.id, count.index)}"
-    network_interface_ids         = [ "${element(azurerm_network_interface.master.*.id, count.index)}" ]
+    primary_network_interface_id  = "${azurerm_network_interface.master.*.id[ count.index ] }"
+    network_interface_ids         = [ "${azurerm_network_interface.master.*.id[ count.index ] }" ]
     vm_size                       = "${var.master_size}"
     availability_set_id           = "${azurerm_availability_set.masterVMAvailSet.id}"
     delete_os_disk_on_termination = true
@@ -58,7 +58,7 @@ resource "azurerm_virtual_machine" "master" {
 
     connection {
         type         = "ssh"
-        host         = "${element( azurerm_network_interface.master.*.private_ip_address, count.index )}"
+        host         = "${ azurerm_network_interface.master.*.private_ip_address[ count.index ] }"
         user         = "${var.vm_user}"
         timeout      = "120s"
         private_key  = "${file(var.private_key_path)}"
@@ -127,7 +127,7 @@ resource "azurerm_virtual_machine" "master" {
         computer_name  = "dcosmaster${count.index}"
         admin_username = "${var.vm_user}"
         admin_password = "${uuid()}"
-        custom_data    = "${element( data.template_file.coreos_master_ignition.*.rendered, count.index ) }"
+        custom_data    = "${ data.template_file.coreos_master_ignition.*.rendered[ count.index ] }"
     }
 
     os_profile_linux_config {

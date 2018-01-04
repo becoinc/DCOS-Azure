@@ -13,7 +13,7 @@ data "template_file" "coreos_private_ignition" {
     count    = "${var.agent_private_count}"
     vars = {
         cluster_name = "${azurerm_resource_group.dcos.name}"
-        my_ip        = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address, count.index ) }"
+        my_ip        = "${azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address[ count.index ] }"
         vm_hostname  = "dcosprivateagent${count.index}"
     }
 }
@@ -137,11 +137,11 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     name                          = "dcosprivateagent${count.index}"
     location                      = "${azurerm_resource_group.dcos.location}"
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
-    primary_network_interface_id  = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.id, count.index )}"
+    primary_network_interface_id  = "${azurerm_network_interface.dcosPrivateAgentIF0.*.id[ count.index ]}"
     network_interface_ids         = [
-        "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.id, count.index )}",
-        "${element( azurerm_network_interface.dcosPrivateAgentMgmt.*.id, count.index )}",
-        "${element( azurerm_network_interface.dcosPrivateAgentStorage.*.id, count.index )}"
+        "${ azurerm_network_interface.dcosPrivateAgentIF0.*.id[ count.index ] }",
+        "${ azurerm_network_interface.dcosPrivateAgentMgmt.*.id[ count.index ] }",
+        "${ azurerm_network_interface.dcosPrivateAgentStorage.*.id[ count.index ] }"
     ]
     vm_size                       = "${var.agent_private_size}"
     availability_set_id           = "${azurerm_availability_set.privateAgentVMAvailSet.id}"
@@ -155,7 +155,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     connection {
         type         = "ssh"
-        host         = "${element( azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address, count.index )}"
+        host         = "${azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address[ count.index ]}"
         user         = "${var.vm_user}"
         timeout      = "120s"
         private_key  = "${file(var.private_key_path)}"
@@ -232,7 +232,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         name              = "dcosPrivateAgentStorageDataDisk0-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
-        managed_disk_id   = "${ element( azurerm_managed_disk.storageDataDisk0.*.id, count.index ) }"
+        managed_disk_id   = "${ azurerm_managed_disk.storageDataDisk0.*.id[ count.index ] }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.data_disk_size}"
         lun               = 0
@@ -242,7 +242,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         name              = "dcosPrivateAgentStorageDataDisk1-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
-        managed_disk_id   = "${ element( azurerm_managed_disk.storageDataDisk1.*.id, count.index ) }"
+        managed_disk_id   = "${ azurerm_managed_disk.storageDataDisk1.*.id[ count.index ] }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.data_disk_size}"
         lun               = 1
@@ -252,7 +252,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         name              = "dcosPrivateAgentPxJournalDisk-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
-        managed_disk_id   = "${ element( azurerm_managed_disk.portworxjournaldisk.*.id, count.index ) }"
+        managed_disk_id   = "${ azurerm_managed_disk.portworxjournaldisk.*.id[ count.index ] }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.extra_disk_size}"
         lun               = 2
@@ -268,7 +268,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         # However, according to CoreOS, their Ignition format is preferred.
         # cloud-init on Azure appears to be the deprecated coreos-cloudinit
         # Therefore we are going to try ignition.
-        custom_data    = "${element( data.template_file.coreos_private_ignition.*.rendered, count.index ) }"
+        custom_data    = "${ data.template_file.coreos_private_ignition.*.rendered[ count.index ] }"
     }
 
     os_profile_linux_config {
