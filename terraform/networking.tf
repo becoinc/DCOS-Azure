@@ -18,6 +18,7 @@ resource "azurerm_virtual_network" "dcos" {
         "10.32.0.0/11",  # Private Agent - Primary Application Data (DC/OS) Subnet
         "10.64.0.0/11",  # Private Agent - Control/Mgmt Subnet - see mgmt_net.tf
         "10.96.0.0/11",  # Private Agent - Storage Data Subnet - see data_net.tf
+        "10.128.0.0/11", # Spare Subnet.
     ]
     lifecycle {
         prevent_destroy = true
