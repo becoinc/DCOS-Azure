@@ -248,9 +248,12 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         lun               = 1
     }
 
+    // PX Data disks are a sequential load and should not be cached
+    // b/c the Read Cache will count against your cached iops and that
+    // is not necessary.
     storage_data_disk {
         name              = "dcosPrivateAgentPxJournalDisk-${count.index}"
-        caching           = "ReadOnly"
+        caching           = "None"
         create_option     = "Attach"
         managed_disk_id   = "${ azurerm_managed_disk.portworxjournaldisk.*.id[ count.index ] }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
