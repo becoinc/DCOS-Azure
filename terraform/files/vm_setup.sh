@@ -17,7 +17,8 @@ WAACONF=/usr/share/oem/waagent.conf
 RESOURCE_DISK_SIZE=`df -m |grep resource|tr -s ' ' |cut -f 4 -d ' '`
 SWAP_SIZE=$(expr ${RESOURCE_DISK_SIZE} / 2)
 echo "Updating ${WAACONF} file."
-sed -i -e 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/' ${WAACONF}
+# We've seen serious I/O Problems with Swap and Azure.
+#sed -i -e 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/' ${WAACONF}
 sed -i -e "s/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=${SWAP_SIZE}/" ${WAACONF}
 systemctl restart waagent
 
