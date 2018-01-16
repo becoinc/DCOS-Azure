@@ -27,10 +27,12 @@ data "template_file" "coreos_private_ignition_lg_agent" {
 
 # The first - eth0 - network interface for the Private agents
 resource "azurerm_network_interface" "dcosLargePrivateAgentIF0" {
-    name                    = "dcosLargePrivateAgentIF${count.index}-0"
-    location                = "${azurerm_resource_group.dcos.location}"
-    resource_group_name     = "${azurerm_resource_group.dcos.name}"
-    count                   = "${var.agent_private_large_count}"
+    name                          = "dcosLargePrivateAgentIF${count.index}-0"
+    location                      = "${azurerm_resource_group.dcos.location}"
+    resource_group_name           = "${azurerm_resource_group.dcos.name}"
+    // TODO - Once the next version ships... use this.
+    //enable_accelerated_networking = false
+    count                         = "${var.agent_private_large_count}"
 
     ip_configuration {
         name                          = "lgPrivateAgentIPConfig"
