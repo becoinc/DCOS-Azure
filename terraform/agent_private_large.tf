@@ -54,7 +54,7 @@ resource "azurerm_network_interface" "dcosLargePrivateAgentMgmt" {
         name                                    = "lgPrivateAgentMgmtIPConfig"
         subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"
         private_ip_address_allocation           = "static"
-        private_ip_address                      = "10.65.${count.index / 254}.${ (count.index + 10) % 254 }"
+        private_ip_address                      = "10.66.${count.index / 254}.${ (count.index + 10) % 254 }"
     }
 }
 
