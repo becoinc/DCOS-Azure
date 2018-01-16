@@ -170,8 +170,8 @@ resource "azurerm_virtual_machine" "dcosLargePrivateAgent" {
 
     # Now the provisioning for DC/OS
     provisioner "file" {
-        source      = "${path.module}/files/install_private_agent.sh"
-        destination = "/opt/dcos/install_private_agent.sh"
+        source      = "${path.module}/files/install_lg_private_agent.sh"
+        destination = "/opt/dcos/install_lg_private_agent.sh"
     }
 
     provisioner "file" {
@@ -184,8 +184,8 @@ resource "azurerm_virtual_machine" "dcosLargePrivateAgent" {
             "sudo mv /tmp/50-docker.network /etc/systemd/network/",
             "sudo chmod 644 /etc/systemd/network/50-docker.network",
             "sudo systemctl restart systemd-networkd",
-            "chmod 755 /opt/dcos/install_private_agent.sh",
-            "cd /opt/dcos && bash install_private_agent.sh '172.16.0.8' 'slave'"
+            "chmod 755 /opt/dcos/install_lg_private_agent.sh",
+            "cd /opt/dcos && bash install_lg_private_agent.sh '172.16.0.8' 'slave'"
         ]
     }
 
