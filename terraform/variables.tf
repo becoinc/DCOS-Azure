@@ -108,8 +108,15 @@ variable "agent_private_count" {
     description = "The number of private agent VMs."
 }
 
+/**
+ * We use a default P20 for the OS disk in order to get 2300 IOPS
+ *
+ * Otherwise logging and other system tasks that use small (4k)
+ * block sizes seem to drag everything else down.
+ *
+ */
 variable os_disk_size {
-    default = 64
+    default = 512
     description = "The size in GB of the Operating System Disks."
 }
 
