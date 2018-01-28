@@ -230,7 +230,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     storage_data_disk {
         name              = "dcosPrivateAgentStorageDataDisk0-${count.index}"
-        caching           = "None"
+        caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_id   = "${ azurerm_managed_disk.storageDataDisk0.*.id[ count.index ] }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
@@ -240,7 +240,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     storage_data_disk {
         name              = "dcosPrivateAgentStorageDataDisk1-${count.index}"
-        caching           = "None"
+        caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_id   = "${ azurerm_managed_disk.storageDataDisk1.*.id[ count.index ] }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"

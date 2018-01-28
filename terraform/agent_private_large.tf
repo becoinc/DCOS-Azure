@@ -213,7 +213,7 @@ resource "azurerm_virtual_machine" "dcosLargePrivateAgent" {
 
     storage_data_disk {
         name              = "${ azurerm_managed_disk.lgStorageDataDisk0.*.name[ count.index ] }"
-        caching           = "None"
+        caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_id   = "${ azurerm_managed_disk.lgStorageDataDisk0.*.id[ count.index ] }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_large_size, "Premium_LRS" ) }"
@@ -223,7 +223,7 @@ resource "azurerm_virtual_machine" "dcosLargePrivateAgent" {
 
     storage_data_disk {
         name              = "${ azurerm_managed_disk.lgStorageDataDisk1.*.name[ count.index ] }"
-        caching           = "None"
+        caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_id   = "${ azurerm_managed_disk.lgStorageDataDisk1.*.id[ count.index ] }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_large_size, "Premium_LRS" ) }"
