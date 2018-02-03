@@ -139,6 +139,11 @@ variable extra_disk_size {
     description = "The size in GB of the Attached Portworx Journal Disk - Only Private Agents have this data disk."
 }
 
+variable io_offload_disk_size {
+    default     = 128
+    description = "The disk size used for disks which are attached to offload the os disk"
+}
+
 variable "agent_private_size" {
     default = "Standard_D2_v2_Promo"
 }

@@ -39,16 +39,91 @@ resource "azurerm_network_interface" "master" {
     }
 }
 
+/*
+ * These are created separately instead of inline with the VM
+ * b/c Terraform and Azure behave better on recreate that way.
+ *
+ * This is an extra data disk attached to the VMs.
+ *
+ */
+resource "azurerm_managed_disk" "dcosMasterLogDisk" {
+    name                 = "dcosMasterLogDisk-${count.index}"
+    location             = "${azurerm_resource_group.dcos.location}"
+    resource_group_name  = "${azurerm_resource_group.dcos.name}"
+    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+    create_option        = "Empty"
+    disk_size_gb         = "${var.io_offload_disk_size}"
+    count                = "${var.master_count}"
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags {
+        environment = "${var.instance_name}"
+    }
+}
+
+/*
+ * These are created separately instead of inline with the VM
+ * b/c Terraform and Azure behave better on recreate that way.
+ *
+ * This is an extra data disk attached to the VMs.
+ *
+ */
+resource "azurerm_managed_disk" "dcosMasterZkDisk" {
+    name                 = "dcosMasterZkDisk-${count.index}"
+    location             = "${azurerm_resource_group.dcos.location}"
+    resource_group_name  = "${azurerm_resource_group.dcos.name}"
+    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+    create_option        = "Empty"
+    disk_size_gb         = "${var.io_offload_disk_size}"
+    count                = "${var.master_count}"
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags {
+        environment = "${var.instance_name}"
+    }
+}
+
+/*
+ * These are created separately instead of inline with the VM
+ * b/c Terraform and Azure behave better on recreate that way.
+ *
+ * This is an extra data disk attached to the VMs.
+ *
+ */
+resource "azurerm_managed_disk" "dcosMasterEtcdDisk" {
+    name                 = "dcosMasterEtcdDisk-${count.index}"
+    location             = "${azurerm_resource_group.dcos.location}"
+    resource_group_name  = "${azurerm_resource_group.dcos.name}"
+    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+    create_option        = "Empty"
+    disk_size_gb         = "${var.io_offload_disk_size}"
+    count                = "${var.master_count}"
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags {
+        environment = "${var.instance_name}"
+    }
+}
+
 resource "azurerm_virtual_machine" "master" {
-    name                          = "dcosmaster${count.index}"
-    location                      = "${azurerm_resource_group.dcos.location}"
-    count                         = "${var.master_count}"
-    resource_group_name           = "${azurerm_resource_group.dcos.name}"
-    primary_network_interface_id  = "${azurerm_network_interface.master.*.id[ count.index ] }"
-    network_interface_ids         = [ "${azurerm_network_interface.master.*.id[ count.index ] }" ]
-    vm_size                       = "${var.master_size}"
-    availability_set_id           = "${azurerm_availability_set.masterVMAvailSet.id}"
-    delete_os_disk_on_termination = true
+    name                             = "dcosmaster${count.index}"
+    location                         = "${azurerm_resource_group.dcos.location}"
+    count                            = "${var.master_count}"
+    resource_group_name              = "${azurerm_resource_group.dcos.name}"
+    primary_network_interface_id     = "${azurerm_network_interface.master.*.id[ count.index ] }"
+    network_interface_ids            = [ "${azurerm_network_interface.master.*.id[ count.index ] }" ]
+    vm_size                          = "${var.master_size}"
+    availability_set_id              = "${azurerm_availability_set.masterVMAvailSet.id}"
+    delete_os_disk_on_termination    = true
     # Bootstrap Node must be alive and well first.
     depends_on                    = [ "azurerm_virtual_machine.dcosBootstrapNodeVM" ]
 
@@ -121,6 +196,47 @@ resource "azurerm_virtual_machine" "master" {
         create_option     = "FromImage"
         managed_disk_type = "${lookup( var.vm_type_to_os_disk_type, var.master_size, "Premium_LRS" )}"
         disk_size_gb      = "${var.os_disk_size}"
+    }
+
+    /**
+     * These extra disks ensure that the synchronous write load from ZK and etcd
+     * do not cause other problems with the cluster.
+     *
+     * A more aggressive configuration would be to split the ZK and etcd WAL
+     * drives out as well.
+     */
+
+    # Storage for /var/log
+    storage_data_disk {
+        name              = "dcosMasterLogDisk-${count.index}"
+        caching           = "None"
+        create_option     = "Attach"
+        managed_disk_id   = "${ azurerm_managed_disk.dcosMasterLogDisk.*.id[ count.index ] }"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.io_offload_disk_size}"
+        lun               = 0
+    }
+
+    # Storage for /var/lib/dcos/exhibitor/
+    storage_data_disk {
+        name              = "dcosMasterZkDisk-${count.index}"
+        caching           = "None"
+        create_option     = "Attach"
+        managed_disk_id   = "${ azurerm_managed_disk.dcosMasterZkDisk.*.id[ count.index ] }"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.io_offload_disk_size}"
+        lun               = 1
+    }
+
+    # Storage for /var/lib/etcd
+    storage_data_disk {
+        name              = "dcosMasterEtcdDisk-${count.index}"
+        caching           = "None"
+        create_option     = "Attach"
+        managed_disk_id   = "${ azurerm_managed_disk.dcosMasterEtcdDisk.*.id[ count.index ] }"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.io_offload_disk_size}"
+        lun               = 2
     }
 
     os_profile {
