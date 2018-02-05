@@ -144,6 +144,11 @@ variable io_offload_disk_size {
     description = "The disk size used for disks which are attached to offload the os disk"
 }
 
+variable mesos_slave_disk_size {
+    default     = 512
+    description = "The disk size used for disks which are attached to offload the os disk - Mesos Slave path (/var/lib/mesos/slave)."
+}
+
 variable "agent_private_size" {
     default = "Standard_D2_v2_Promo"
 }
