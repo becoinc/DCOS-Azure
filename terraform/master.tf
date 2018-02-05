@@ -8,17 +8,112 @@
 # License: See included LICENSE.md
 #
 
-data "template_file" "coreos_master_ignition" {
-    template = "${file( "${path.module}/files/master_setup.ign.tpl") }"
+locals {
+    my_ip        = "${azurerm_network_interface.master.*.private_ip_address}"
+    cluster_name = "${azurerm_resource_group.dcos.name}"
+}
+
+data "ignition_file" "master_hosts" {
+    count      = "${var.master_count}"
+    filesystem = "root"
+    path       = "/etc/hosts"
+    mode       = 420
+    content {
+        content = <<EOF
+127.0.0.1   localhost
+::1         localhost
+${local.my_ip[ count.index ]}    dcosmaster${count.index}
+EOF
+    }
+}
+
+data "ignition_systemd_unit" "master_etcd" {
+    count   = "${var.master_count}"
+    name    = "etcd-member.service"
+    enabled = true
+    dropin {
+        name = "20-clct-etcd-member.conf"
+        content = <<EOF
+[Service]
+ExecStart=
+ExecStart=/usr/lib/coreos/etcd-wrapper $ETCD_OPTS \
+    --name="${local.cluster_name}-etcd-${count.index}" \
+    --listen-peer-urls="https://127.0.0.1:2380,https://${local.my_ip[ count.index ]}:2380" \
+    --listen-client-urls="https://127.0.0.1:2379,https://${local.my_ip[ count.index ]}:2379,http://${local.my_ip[ count.index ]}:12379" \
+    --initial-advertise-peer-urls="https://${local.my_ip[ count.index ]}:2380" \
+    --initial-cluster="${local.cluster_name}-etcd-0=https://172.16.0.10:2380,${local.cluster_name}-etcd-1=https://172.16.0.11:2380,${local.cluster_name}-etcd-2=https://172.16.0.12:2380,${local.cluster_name}-etcd-3=https://172.16.0.13:2380,${local.cluster_name}-etcd-4=https://172.16.0.14:2380" \
+    --initial-cluster-state="new" \
+    --initial-cluster-token="${local.cluster_name}-etcd-token" \
+    --advertise-client-urls="https://${local.my_ip[ count.index ]}:2379" \
+    --auto-tls \
+    --peer-auto-tls \
+    --auto-compaction-retention=3 \
+    --quota-backend-bytes=8589934592 \
+    --snapshot-count=5000
+Environment="ETCD_IMAGE_TAG=v3.2.10"
+EOF
+    }
+}
+
+/**
+ * Mount the lun1 data disk on /var/lib/dcos/exhibitor/
+ */
+data "ignition_systemd_unit" "master_mount_var_lib_dcos_exhibitor" {
+    name    = "var-lib-dcos-exhibitor.mount"
+    enabled = true
+    content = <<EOF
+[Unit]
+Before=local-fs.target
+[Mount]
+What=/dev/disk/azure/scsi1/lun1
+Where=/var/lib/dcos/exhibitor
+Type=xfs
+[Install]
+WantedBy=local-fs.target
+EOF
+}
+
+/**
+ * Mount the lun2 data disk on /var/lib/etcd
+ */
+data "ignition_systemd_unit" "master_mount_var_lib_etcd" {
+    name    = "var-lib-etcd.mount"
+    enabled = true
+    content = <<EOF
+[Unit]
+Before=local-fs.target
+[Mount]
+What=/dev/disk/azure/scsi1/lun2
+Where=/var/lib/etcd
+Type=xfs
+[Install]
+WantedBy=local-fs.target
+EOF
+}
+
+data "ignition_config" "master" {
     # Only 5 is supported right now. This is HA and production ready
     # to almost any scale.
-    count    = "${var.master_count}"
-    vars = {
-        cluster_name = "${azurerm_resource_group.dcos.name}"
-        master_num   = "${count.index}"
-        my_ip        = "${ azurerm_network_interface.master.*.private_ip_address[ count.index ] }"
-        vm_hostname  = "dcosmaster${count.index}"
-    }
+    count   = "${var.master_count}"
+    filesystems = [
+        "${data.ignition_filesystem.dev_sdc.id}",
+        "${data.ignition_filesystem.dev_sdd.id}",
+        "${data.ignition_filesystem.dev_sde.id}",
+    ]
+    files = [
+        "${data.ignition_file.env_profile.id}",
+        "${data.ignition_file.tcp_keepalive.id}",
+        "${data.ignition_file.master_hosts.*.id[ count.index ]}",
+        "${data.ignition_file.azure_disk_udev_rules.id}"
+    ]
+    systemd = [
+        "${data.ignition_systemd_unit.mask_locksmithd.id}",
+        "${data.ignition_systemd_unit.mask_update_engine.id}",
+        "${data.ignition_systemd_unit.mount_var_log.id}",
+        "${data.ignition_systemd_unit.master_mount_var_lib_dcos_exhibitor.id}",
+        "${data.ignition_systemd_unit.master_mount_var_lib_etcd.id}",
+        "${data.ignition_systemd_unit.master_etcd.*.id[ count.index ]}"
+    ]
 }
 
 resource "azurerm_network_interface" "master" {
@@ -39,81 +134,6 @@ resource "azurerm_network_interface" "master" {
     }
 }
 
-/*
- * These are created separately instead of inline with the VM
- * b/c Terraform and Azure behave better on recreate that way.
- *
- * This is an extra data disk attached to the VMs.
- *
- */
-resource "azurerm_managed_disk" "dcosMasterLogDisk" {
-    name                 = "dcosMasterLogDisk-${count.index}"
-    location             = "${azurerm_resource_group.dcos.location}"
-    resource_group_name  = "${azurerm_resource_group.dcos.name}"
-    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
-    create_option        = "Empty"
-    disk_size_gb         = "${var.io_offload_disk_size}"
-    count                = "${var.master_count}"
-
-    lifecycle {
-        prevent_destroy = true
-    }
-
-    tags {
-        environment = "${var.instance_name}"
-    }
-}
-
-/*
- * These are created separately instead of inline with the VM
- * b/c Terraform and Azure behave better on recreate that way.
- *
- * This is an extra data disk attached to the VMs.
- *
- */
-resource "azurerm_managed_disk" "dcosMasterZkDisk" {
-    name                 = "dcosMasterZkDisk-${count.index}"
-    location             = "${azurerm_resource_group.dcos.location}"
-    resource_group_name  = "${azurerm_resource_group.dcos.name}"
-    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
-    create_option        = "Empty"
-    disk_size_gb         = "${var.io_offload_disk_size}"
-    count                = "${var.master_count}"
-
-    lifecycle {
-        prevent_destroy = true
-    }
-
-    tags {
-        environment = "${var.instance_name}"
-    }
-}
-
-/*
- * These are created separately instead of inline with the VM
- * b/c Terraform and Azure behave better on recreate that way.
- *
- * This is an extra data disk attached to the VMs.
- *
- */
-resource "azurerm_managed_disk" "dcosMasterEtcdDisk" {
-    name                 = "dcosMasterEtcdDisk-${count.index}"
-    location             = "${azurerm_resource_group.dcos.location}"
-    resource_group_name  = "${azurerm_resource_group.dcos.name}"
-    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
-    create_option        = "Empty"
-    disk_size_gb         = "${var.io_offload_disk_size}"
-    count                = "${var.master_count}"
-
-    lifecycle {
-        prevent_destroy = true
-    }
-
-    tags {
-        environment = "${var.instance_name}"
-    }
-}
-
 resource "azurerm_virtual_machine" "master" {
     name                             = "dcosmaster${count.index}"
     location                         = "${azurerm_resource_group.dcos.location}"
@@ -124,6 +144,7 @@ resource "azurerm_virtual_machine" "master" {
     vm_size                          = "${var.master_size}"
     availability_set_id              = "${azurerm_availability_set.masterVMAvailSet.id}"
     delete_os_disk_on_termination    = true
+    delete_data_disks_on_termination = true
     # Bootstrap Node must be alive and well first.
     depends_on                    = [ "azurerm_virtual_machine.dcosBootstrapNodeVM" ]
 
@@ -210,8 +231,7 @@ resource "azurerm_virtual_machine" "master" {
     storage_data_disk {
         name              = "dcosMasterLogDisk-${count.index}"
         caching           = "None"
-        create_option     = "Attach"
-        managed_disk_id   = "${ azurerm_managed_disk.dcosMasterLogDisk.*.id[ count.index ] }"
+        create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
         lun               = 0
@@ -221,8 +241,7 @@ resource "azurerm_virtual_machine" "master" {
     storage_data_disk {
         name              = "dcosMasterZkDisk-${count.index}"
         caching           = "None"
-        create_option     = "Attach"
-        managed_disk_id   = "${ azurerm_managed_disk.dcosMasterZkDisk.*.id[ count.index ] }"
+        create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
         lun               = 1
@@ -232,8 +251,7 @@ resource "azurerm_virtual_machine" "master" {
     storage_data_disk {
         name              = "dcosMasterEtcdDisk-${count.index}"
         caching           = "None"
-        create_option     = "Attach"
-        managed_disk_id   = "${ azurerm_managed_disk.dcosMasterEtcdDisk.*.id[ count.index ] }"
+        create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
         lun               = 2
@@ -243,7 +261,7 @@ resource "azurerm_virtual_machine" "master" {
         computer_name  = "dcosmaster${count.index}"
         admin_username = "${var.vm_user}"
         admin_password = "${uuid()}"
-        custom_data    = "${ data.template_file.coreos_master_ignition.*.rendered[ count.index ] }"
+        custom_data    = "${ data.ignition_config.master.*.rendered[ count.index ] }"
     }
 
     os_profile_linux_config {

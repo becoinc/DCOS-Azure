@@ -127,3 +127,21 @@ data "ignition_filesystem" "dev_sde" {
         format = "xfs"
     }
 }
+
+/**
+ * Mount the lun0 data disk on /var/log
+ */
+data "ignition_systemd_unit" "mount_var_log" {
+    name    = "var-log.mount"
+    enabled = true
+    content = <<EOF
+[Unit]
+Before=local-fs.target
+[Mount]
+What=/dev/disk/azure/scsi1/lun0
+Where=/var/log
+Type=xfs
+[Install]
+WantedBy=local-fs.target
+EOF
+}

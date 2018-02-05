@@ -23,24 +23,6 @@ EOF
 }
 
 /**
- * Mount the lun0 data disk on /var/log
- */
-data "ignition_systemd_unit" "public_agent_mount_var_log" {
-    name    = "var-log.mount"
-    enabled = true
-    content = <<EOF
-[Unit]
-Before=local-fs.target
-[Mount]
-What=/dev/disk/azure/scsi1/lun0
-Where=/var/log
-Type=xfs
-[Install]
-WantedBy=local-fs.target
-EOF
-}
-
-/**
  * Mount the lun1 data disk on /var/lib/docker
  */
 data "ignition_systemd_unit" "public_agent_mount_var_lib_docker" {
@@ -86,13 +68,13 @@ data "ignition_config" "public_agent" {
     files = [
         "${data.ignition_file.env_profile.id}",
         "${data.ignition_file.tcp_keepalive.id}",
-        //"${data.ignition_file.public_agent_hosts.*.id[ count.index ]}",
+        "${data.ignition_file.public_agent_hosts.*.id[ count.index ]}",
         "${data.ignition_file.azure_disk_udev_rules.id}"
     ]
     systemd = [
         "${data.ignition_systemd_unit.mask_locksmithd.id}",
         "${data.ignition_systemd_unit.mask_update_engine.id}",
-        "${data.ignition_systemd_unit.public_agent_mount_var_log.id}",
+        "${data.ignition_systemd_unit.mount_var_log.id}",
         "${data.ignition_systemd_unit.public_agent_mount_var_lib_docker.id}",
         "${data.ignition_systemd_unit.public_agent_mount_var_lib_mesos_slave.id}",
     ]
