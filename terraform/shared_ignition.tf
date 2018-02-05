@@ -9,6 +9,22 @@
 #
 
 /**
+ *
+ * Configure Azure Disks to have consistent names by LUN
+ *
+ * See https://docs.microsoft.com/en-us/azure/virtual-machines/linux/troubleshoot-device-names-problems
+ *
+ */
+data "ignition_file" "azure_disk_udev_rules" {
+    filesystem = "root"
+    path       = "/etc/udev/rules.d/66-azure-storage.rules"
+    mode       = 0644
+    content {
+        content = "${file( "${path.module}/files/66-azure-storage.rules" )}"
+    }
+}
+
+/**
  * This sets the DC/OS env. variable to ensure time is in sync.
  */
 data "ignition_file" "env_profile" {
@@ -50,4 +66,64 @@ data "ignition_systemd_unit" "mask_update_engine" {
 data "ignition_systemd_unit" "mask_locksmithd" {
     name = "locksmithd.service"
     mask = true
+}
+
+/**
+ * Format /dev/sdc with XFS filesystem.
+ *
+ * We don't know here which of the LUNs is /dev/sdX
+ *
+ * Note that for ignition ONLY the number of disks matters.
+ *
+ * This is because the Azure Udev rules won't have yet named things
+ * properly. -- The implication is that the order of sdc, sdd, sde
+ * might change. This is an Azure issue.
+ *
+ * The systemd mount units mount things by the proper names.
+ */
+data "ignition_filesystem" "dev_sdc" {
+    mount {
+        device = "/dev/sdc"
+        format = "xfs"
+    }
+}
+
+/**
+ * Format /dev/sdd with XFS filesystem.
+ *
+ * We don't know here which of the LUNs is /dev/sdX
+ *
+ * Note that for ignition ONLY the number of disks matters.
+ *
+ * This is because the Azure Udev rules won't have yet named things
+ * properly. -- The implication is that the order of sdc, sdd, sde
+ * might change. This is an Azure issue.
+ *
+ * The systemd mount units mount things by the proper names.
+ */
+data "ignition_filesystem" "dev_sdd" {
+    mount {
+        device = "/dev/sdd"
+        format = "xfs"
+    }
+}
+
+/**
+ * Format /dev/sdc with XFS filesystem.
+ *
+ * We don't know here which of the LUNs is /dev/sdX
+ *
+ * Note that for ignition ONLY the number of disks matters.
+ *
+ * This is because the Azure Udev rules won't have yet named things
+ * properly. -- The implication is that the order of sdc, sdd, sde
+ * might change. This is an Azure issue.
+ *
+ * The systemd mount units mount things by the proper names.
+ */
+data "ignition_filesystem" "dev_sde" {
+    mount {
+        device = "/dev/sde"
+        format = "xfs"
+    }
 }
