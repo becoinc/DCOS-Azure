@@ -15,9 +15,9 @@ data "ignition_file" "public_agent_hosts" {
     mode       = 420
     content {
         content = <<EOF
-        127.0.0.1   localhost
-        ::1         localhost
-        ${azurerm_network_interface.dcosPublicAgentIF0.*.private_ip_address[ count.index ]}    dcospublicagent${count.index}
+127.0.0.1   localhost
+::1         localhost
+${azurerm_network_interface.dcosPublicAgentIF0.*.private_ip_address[ count.index ]}    dcospublicagent${count.index}
 EOF
     }
 }
@@ -86,7 +86,7 @@ data "ignition_config" "public_agent" {
     files = [
         "${data.ignition_file.env_profile.id}",
         "${data.ignition_file.tcp_keepalive.id}",
-        "${data.ignition_file.public_agent_hosts.*.id[ count.index ]}",
+        //"${data.ignition_file.public_agent_hosts.*.id[ count.index ]}",
         "${data.ignition_file.azure_disk_udev_rules.id}"
     ]
     systemd = [
@@ -145,7 +145,8 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
         "${ azurerm_network_interface.dcosPublicAgentMgmt.*.id[ count.index ] }" ]
     vm_size                       = "${var.agent_public_size}"
     availability_set_id           = "${azurerm_availability_set.publicAgentVMAvailSet.id}"
-    delete_os_disk_on_termination = true
+    delete_os_disk_on_termination    = true
+    delete_data_disks_on_termination = true
     count                         = "${var.agent_public_count}"
     depends_on                    = ["azurerm_virtual_machine.master"]
 
