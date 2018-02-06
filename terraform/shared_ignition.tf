@@ -68,28 +68,11 @@ data "ignition_systemd_unit" "mask_locksmithd" {
     mask = true
 }
 
-/**
- * Format /dev/disk/azure/scsi1/lun0 with XFS filesystem.
- *
- * We don't know here which of the LUNs is /dev/sdX
- *
- * Note that for ignition ONLY the number of disks matters.
- *
- * This is because the Azure Udev rules won't have yet named things
- * properly. -- The implication is that the order of sdc, sdd, sde
- * might change. This is an Azure issue.
- *
- * The systemd mount units mount things by the proper names.
- */
-data "ignition_filesystem" "lun0" {
-    mount {
-        device = "/dev/disk/by-path/acpi-VMBUS:01-scsi-0:0:0:0"
-        format = "xfs"
-    }
-}
+# WARNING: Do not use LUN0. Linux treats it oddly
+# w.r.t. how it sort-of overlaps with the ROOT device.
 
 /**
- * Format /dev/disk/azure/scsi1/lun1 with XFS filesystem.
+ * Format /dev/disk/azure/scsi1/lun0 with XFS filesystem.
  *
  * We don't know here which of the LUNs is /dev/sdX
  *
@@ -109,7 +92,7 @@ data "ignition_filesystem" "lun1" {
 }
 
 /**
- * Format /dev/disk/azure/scsi1/lun2 with XFS filesystem.
+ * Format /dev/disk/azure/scsi1/lun1 with XFS filesystem.
  *
  * We don't know here which of the LUNs is /dev/sdX
  *
@@ -129,7 +112,27 @@ data "ignition_filesystem" "lun2" {
 }
 
 /**
- * Mount the lun0 data disk on /var/log
+ * Format /dev/disk/azure/scsi1/lun2 with XFS filesystem.
+ *
+ * We don't know here which of the LUNs is /dev/sdX
+ *
+ * Note that for ignition ONLY the number of disks matters.
+ *
+ * This is because the Azure Udev rules won't have yet named things
+ * properly. -- The implication is that the order of sdc, sdd, sde
+ * might change. This is an Azure issue.
+ *
+ * The systemd mount units mount things by the proper names.
+ */
+data "ignition_filesystem" "lun3" {
+    mount {
+        device = "/dev/disk/by-path/acpi-VMBUS:01-scsi-0:0:0:3"
+        format = "xfs"
+    }
+}
+
+/**
+ * Mount the lun1 data disk on /var/log
  */
 data "ignition_systemd_unit" "mount_var_log" {
     name    = "var-log.mount"
@@ -138,7 +141,7 @@ data "ignition_systemd_unit" "mount_var_log" {
 [Unit]
 Before=local-fs.target
 [Mount]
-What=/dev/disk/azure/scsi1/lun0
+What=/dev/disk/azure/scsi1/lun1
 Where=/var/log
 Type=xfs
 [Install]

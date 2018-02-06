@@ -65,7 +65,7 @@ data "ignition_systemd_unit" "master_mount_var_lib_dcos_exhibitor" {
 [Unit]
 Before=local-fs.target
 [Mount]
-What=/dev/disk/azure/scsi1/lun1
+What=/dev/disk/azure/scsi1/lun2
 Where=/var/lib/dcos/exhibitor
 Type=xfs
 [Install]
@@ -83,7 +83,7 @@ data "ignition_systemd_unit" "master_mount_var_lib_etcd" {
 [Unit]
 Before=local-fs.target
 [Mount]
-What=/dev/disk/azure/scsi1/lun2
+What=/dev/disk/azure/scsi1/lun3
 Where=/var/lib/etcd
 Type=xfs
 [Install]
@@ -96,9 +96,9 @@ data "ignition_config" "master" {
     # to almost any scale.
     count   = "${var.master_count}"
     filesystems = [
-        "${data.ignition_filesystem.lun0.id}",
         "${data.ignition_filesystem.lun1.id}",
         "${data.ignition_filesystem.lun2.id}",
+        "${data.ignition_filesystem.lun3.id}",
     ]
     files = [
         "${data.ignition_file.env_profile.id}",
@@ -234,7 +234,7 @@ resource "azurerm_virtual_machine" "master" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
-        lun               = 0
+        lun               = 1
     }
 
     # Storage for /var/lib/dcos/exhibitor/
@@ -244,7 +244,7 @@ resource "azurerm_virtual_machine" "master" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
-        lun               = 1
+        lun               = 2
     }
 
     # Storage for /var/lib/etcd
@@ -254,7 +254,7 @@ resource "azurerm_virtual_machine" "master" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
-        lun               = 2
+        lun               = 3
     }
 
     os_profile {

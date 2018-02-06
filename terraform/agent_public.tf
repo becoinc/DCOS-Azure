@@ -23,7 +23,7 @@ EOF
 }
 
 /**
- * Mount the lun1 data disk on /var/lib/docker
+ * Mount the lun2 data disk on /var/lib/docker
  */
 data "ignition_systemd_unit" "public_agent_mount_var_lib_docker" {
     name    = "var-lib-docker.mount"
@@ -32,7 +32,7 @@ data "ignition_systemd_unit" "public_agent_mount_var_lib_docker" {
 [Unit]
 Before=local-fs.target
 [Mount]
-What=/dev/disk/azure/scsi1/lun1
+What=/dev/disk/azure/scsi1/lun2
 Where=/var/lib/docker
 Type=xfs
 [Install]
@@ -41,7 +41,7 @@ EOF
 }
 
 /**
- * Mount the lun2 data disk on /var/lib/mesos/slave
+ * Mount the lun3 data disk on /var/lib/mesos/slave
  */
 data "ignition_systemd_unit" "public_agent_mount_var_lib_mesos_slave" {
     name    = "var-lib-mesos-slave.mount"
@@ -50,7 +50,7 @@ data "ignition_systemd_unit" "public_agent_mount_var_lib_mesos_slave" {
 [Unit]
 Before=local-fs.target
 [Mount]
-What=/dev/disk/azure/scsi1/lun2
+What=/dev/disk/azure/scsi1/lun3
 Where=/var/lib/mesos/slave
 Type=xfs
 [Install]
@@ -61,9 +61,9 @@ EOF
 data "ignition_config" "public_agent" {
     count   = "${var.agent_public_count}"
     filesystems = [
-        "${data.ignition_filesystem.lun0.id}",
         "${data.ignition_filesystem.lun1.id}",
         "${data.ignition_filesystem.lun2.id}",
+        "${data.ignition_filesystem.lun3.id}",
     ]
     files = [
         "${data.ignition_file.env_profile.id}",
@@ -226,7 +226,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
-        lun               = 0
+        lun               = 1
     }
 
     # Storage for /var/lib/docker
@@ -236,7 +236,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
-        lun               = 1
+        lun               = 2
     }
 
     # Storage for /var/lib/mesos/slave
@@ -246,7 +246,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.mesos_slave_disk_size}"
-        lun               = 2
+        lun               = 3
     }
 
     os_profile {

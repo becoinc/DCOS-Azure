@@ -67,8 +67,7 @@ that form a full cloud system.
 the whole repo. See the docs for [terraform get](https://www.terraform.io/docs/commands/get.html).
 
 * Ensure your `main.tf` calls out compatible versions of the providers
-for this module. We use `azurerm` and `template` and tested with
-version `~> 0.1` of each. See the example `main.tf` for a provider block.
+for this module. See the example `main.tf` for the relevant provider blocks.
 
 * Setup a `instancename.tfvars` file that overrides the appropriate project variables
 for the particular instance you are creating. This allows you to have
@@ -134,6 +133,15 @@ a terraform problem. More trials needed.
 
 * Changing the number of masters requires editing of the bootstrap.sh script.
 This really should be a parameter.
+
+# Design Notes #
+
+These machines are configured with a number of attached disks. These
+are mostly tested with `Premium_SSDs`. The OS disks are assumed to be
+on LUN0 and attached disks start after that.
+
+Azure has a number of idiosyncrasies with its disk setup that make it
+hard to get well-defined disk names early in the boot process. 
 
 # Operations and Maintenance #
 
