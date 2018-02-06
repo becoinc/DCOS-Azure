@@ -69,10 +69,7 @@ data "ignition_systemd_unit" "mask_locksmithd" {
 }
 
 /**
- * Format /dev/sdb with XFS filesystem.
- *
- * /dev/sdb is *usually* the ephemeral SSD, but we've seen
- * Azure attach it other places if you have lots of disks.
+ * Format /dev/disk/azure/scsi1/lun0 with XFS filesystem.
  *
  * We don't know here which of the LUNs is /dev/sdX
  *
@@ -84,15 +81,15 @@ data "ignition_systemd_unit" "mask_locksmithd" {
  *
  * The systemd mount units mount things by the proper names.
  */
-data "ignition_filesystem" "dev_sdb" {
+data "ignition_filesystem" "lun0" {
     mount {
-        device = "/dev/sdb"
+        device = "/dev/disk/by-path/acpi-VMBUS:01-scsi-0:0:0:0"
         format = "xfs"
     }
 }
 
 /**
- * Format /dev/sdc with XFS filesystem.
+ * Format /dev/disk/azure/scsi1/lun1 with XFS filesystem.
  *
  * We don't know here which of the LUNs is /dev/sdX
  *
@@ -104,15 +101,15 @@ data "ignition_filesystem" "dev_sdb" {
  *
  * The systemd mount units mount things by the proper names.
  */
-data "ignition_filesystem" "dev_sdc" {
+data "ignition_filesystem" "lun1" {
     mount {
-        device = "/dev/sdc"
+        device = "/dev/disk/by-path/acpi-VMBUS:01-scsi-0:0:0:1"
         format = "xfs"
     }
 }
 
 /**
- * Format /dev/sdd with XFS filesystem.
+ * Format /dev/disk/azure/scsi1/lun2 with XFS filesystem.
  *
  * We don't know here which of the LUNs is /dev/sdX
  *
@@ -124,29 +121,9 @@ data "ignition_filesystem" "dev_sdc" {
  *
  * The systemd mount units mount things by the proper names.
  */
-data "ignition_filesystem" "dev_sdd" {
+data "ignition_filesystem" "lun2" {
     mount {
-        device = "/dev/sdd"
-        format = "xfs"
-    }
-}
-
-/**
- * Format /dev/sdc with XFS filesystem.
- *
- * We don't know here which of the LUNs is /dev/sdX
- *
- * Note that for ignition ONLY the number of disks matters.
- *
- * This is because the Azure Udev rules won't have yet named things
- * properly. -- The implication is that the order of sdc, sdd, sde
- * might change. This is an Azure issue.
- *
- * The systemd mount units mount things by the proper names.
- */
-data "ignition_filesystem" "dev_sde" {
-    mount {
-        device = "/dev/sde"
+        device = "/dev/disk/by-path/acpi-VMBUS:01-scsi-0:0:0:2"
         format = "xfs"
     }
 }
