@@ -69,6 +69,29 @@ data "ignition_systemd_unit" "mask_locksmithd" {
 }
 
 /**
+ * Format /dev/sdb with XFS filesystem.
+ *
+ * /dev/sdb is *usually* the ephemeral SSD, but we've seen
+ * Azure attach it other places if you have lots of disks.
+ *
+ * We don't know here which of the LUNs is /dev/sdX
+ *
+ * Note that for ignition ONLY the number of disks matters.
+ *
+ * This is because the Azure Udev rules won't have yet named things
+ * properly. -- The implication is that the order of sdc, sdd, sde
+ * might change. This is an Azure issue.
+ *
+ * The systemd mount units mount things by the proper names.
+ */
+data "ignition_filesystem" "dev_sdb" {
+    mount {
+        device = "/dev/sdb"
+        format = "xfs"
+    }
+}
+
+/**
  * Format /dev/sdc with XFS filesystem.
  *
  * We don't know here which of the LUNs is /dev/sdX

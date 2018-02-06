@@ -96,6 +96,7 @@ data "ignition_config" "master" {
     # to almost any scale.
     count   = "${var.master_count}"
     filesystems = [
+        "${data.ignition_filesystem.dev_sdb.id}",
         "${data.ignition_filesystem.dev_sdc.id}",
         "${data.ignition_filesystem.dev_sdd.id}",
         "${data.ignition_filesystem.dev_sde.id}",
