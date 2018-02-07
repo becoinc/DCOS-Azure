@@ -314,7 +314,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     # Storage for /var/log
     storage_data_disk {
-        name              = "dcosPrivateLogDisk-${count.index}"
+        name              = "dcosPrivateLogDisk--${count.index}"
         caching           = "None"
         create_option     = "Attach"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
@@ -324,7 +324,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     # Storage for /var/lib/docker
     storage_data_disk {
-        name              = "dcosPrivateDockerDisk-${count.index}"
+        name              = "dcosPrivateDockerDisk--${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
@@ -334,7 +334,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     # Storage for /var/lib/mesos/slave
     storage_data_disk {
-        name              = "dcosPrivateMesosDisk-${count.index}"
+        name              = "dcosPrivateMesosDisk--${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
