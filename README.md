@@ -25,7 +25,7 @@ VM size and/or VM count.
 * It is assumed that you have a functioning Azure client installed. You can do so [here](https://github.com/Azure/azure-cli)
 
 * Install [Terraform](https://www.terraform.io/downloads.html). This was
-tested with `v0.11.1` on macOS Sierra. Using `v0.3.3` of the AzureRM provider.
+tested with `v0.11.1` on macOS Sierra. Using `v1.1.1` of the AzureRM provider.
 
 * Create credentials for Terraform to access Azure.
 To do so, you will need to following environment variables :

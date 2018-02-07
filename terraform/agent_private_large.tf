@@ -232,7 +232,7 @@ resource "azurerm_virtual_machine" "dcosLargePrivateAgent" {
         publisher = "${var.image["publisher"]}"
         offer     = "${var.image["offer"]}"
         sku       = "${var.image["sku"]}"
-        version   = "1632.2.1" //"${var.image["version"]}"
+        version   = "${var.image["version"]}"
     }
 
     storage_os_disk {
