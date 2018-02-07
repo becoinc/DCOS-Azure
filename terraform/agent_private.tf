@@ -10,10 +10,11 @@
 
 # The first - eth0 - network interface for the Private agents
 resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
-    name                    = "dcosPrivateAgentIF${count.index}-0"
-    location                = "${azurerm_resource_group.dcos.location}"
-    resource_group_name     = "${azurerm_resource_group.dcos.name}"
-    count                   = "${var.agent_private_count}"
+    name                          = "dcosPrivateAgentIF${count.index}-0"
+    location                      = "${azurerm_resource_group.dcos.location}"
+    resource_group_name           = "${azurerm_resource_group.dcos.name}"
+    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_size, "false" )}"
+    count                         = "${var.agent_private_count}"
 
     ip_configuration {
         name                          = "privateAgentIPConfig"
@@ -27,10 +28,12 @@ resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
 
 # This is the second - eth1 - interface for the private agents.
 resource "azurerm_network_interface" "dcosPrivateAgentMgmt" {
-    name                = "dcosPrivateAgentMgmtIF${count.index}-0"
-    location            = "${azurerm_resource_group.dcos.location}"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
-    count               = "${var.agent_private_count}"
+    name                          = "dcosPrivateAgentMgmtIF${count.index}-0"
+    location                      = "${azurerm_resource_group.dcos.location}"
+    resource_group_name           = "${azurerm_resource_group.dcos.name}"
+    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_size, "false" )}"
+    count                         = "${var.agent_private_count}"
+
     ip_configuration {
         name                                    = "privateAgentMgmtIPConfig"
         subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"
@@ -41,10 +44,12 @@ resource "azurerm_network_interface" "dcosPrivateAgentMgmt" {
 
 # This is the third - eth2 - interface for the private agents.
 resource "azurerm_network_interface" "dcosPrivateAgentStorage" {
-    name                = "dcosPrivateAgentStorageIF${count.index}-0"
-    location            = "${azurerm_resource_group.dcos.location}"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
-    count               = "${var.agent_private_count}"
+    name                          = "dcosPrivateAgentStorageIF${count.index}-0"
+    location                      = "${azurerm_resource_group.dcos.location}"
+    resource_group_name           = "${azurerm_resource_group.dcos.name}"
+    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_size, "false" )}"
+    count                         = "${var.agent_private_count}"
+
     ip_configuration {
         name                                    = "privateAgentStorageIPConfig"
         subnet_id                               = "${azurerm_subnet.dcosStorageData.id}"
@@ -130,7 +135,7 @@ resource "azurerm_managed_disk" "portworxjournaldisk" {
  *
  */
 resource "azurerm_managed_disk" "private_agent_log" {
-    name                 = "dcosPrivateLogDisk--${count.index}"
+    name                 = "dcosPrivateLogDisk-${count.index}"
     location             = "${azurerm_resource_group.dcos.location}"
     resource_group_name  = "${azurerm_resource_group.dcos.name}"
     storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
@@ -155,7 +160,7 @@ resource "azurerm_managed_disk" "private_agent_log" {
  *
  */
 resource "azurerm_managed_disk" "private_agent_docker" {
-    name                 = "dcosPrivateDockerDisk--${count.index}"
+    name                 = "dcosPrivateDockerDisk-${count.index}"
     location             = "${azurerm_resource_group.dcos.location}"
     resource_group_name  = "${azurerm_resource_group.dcos.name}"
     storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
@@ -180,7 +185,7 @@ resource "azurerm_managed_disk" "private_agent_docker" {
  *
  */
 resource "azurerm_managed_disk" "private_agent_mesos" {
-    name                 = "dcosPrivateMesosDisk--${count.index}"
+    name                 = "dcosPrivateMesosDisk-${count.index}"
     location             = "${azurerm_resource_group.dcos.location}"
     resource_group_name  = "${azurerm_resource_group.dcos.name}"
     storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
@@ -314,7 +319,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     # Storage for /var/log
     storage_data_disk {
-        name              = "dcosPrivateLogDisk--${count.index}"
+        name              = "dcosPrivateLogDisk-${count.index}"
         caching           = "None"
         create_option     = "Attach"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
@@ -324,7 +329,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     # Storage for /var/lib/docker
     storage_data_disk {
-        name              = "dcosPrivateDockerDisk--${count.index}"
+        name              = "dcosPrivateDockerDisk-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
@@ -334,7 +339,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
 
     # Storage for /var/lib/mesos/slave
     storage_data_disk {
-        name              = "dcosPrivateMesosDisk--${count.index}"
+        name              = "dcosPrivateMesosDisk-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Attach"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
