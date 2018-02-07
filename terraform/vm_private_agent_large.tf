@@ -40,6 +40,7 @@ resource "azurerm_network_interface" "dcosLargePrivateAgentMgmt" {
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
     count                         = "${var.agent_private_large_count}"
     enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_large_size, "false" )}"
+
     ip_configuration {
         name                                    = "lgPrivateAgentMgmtIPConfig"
         subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"

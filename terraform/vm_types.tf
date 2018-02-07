@@ -46,5 +46,18 @@ variable "vm_type_to_an" {
         Standard_E16s_v3 = "true"
         Standard_E32s_v3 = "true"
         Standard_E64s_v3 = "true"
+        Standard_F8s_v2  = "true"
+        Standard_F16s_v2 = "true"
+        Standard_F32s_v2 = "true"
+        Standard_F64s_v2 = "true"
+        Standard_F72s_v2 = "true"
+        Standard_F8s     = "true"
+        Standard_F16s    = "true"
+        Standard_F8      = "true"
+        Standard_F16     = "true"
+        Standard_M64s    = "true"
+        Standard_M64ms   = "true"
+        Standard_M128s   = "true"
+        Standard_M128ms  = "true"
     }
 }

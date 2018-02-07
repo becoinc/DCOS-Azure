@@ -12,7 +12,9 @@ resource "azurerm_network_interface" "master" {
     name                          = "dcosmasternic${count.index}"
     location                      = "${azurerm_resource_group.dcos.location}"
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
-    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.master_size, "false" )}"
+    // JZ - Disabled b/c you can't mix AN and non-AN VMs in the same avail. set
+    // Would require a complete cluster rebuild.
+    //enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.master_size, "false" )}"
     count                         = "${var.master_count}"
     network_security_group_id     = "${azurerm_network_security_group.dcosmaster.id}"
 

@@ -13,7 +13,9 @@ resource "azurerm_network_interface" "dcosPrivateAgentIF0" {
     name                          = "dcosPrivateAgentIF${count.index}-0"
     location                      = "${azurerm_resource_group.dcos.location}"
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
-    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_size, "false" )}"
+    // JZ - Disabled b/c you can't mix AN and non-AN VMs in the same avail. set
+    // Would require a complete cluster rebuild.
+    //enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_size, "false" )}"
     count                         = "${var.agent_private_count}"
 
     ip_configuration {
@@ -31,8 +33,10 @@ resource "azurerm_network_interface" "dcosPrivateAgentMgmt" {
     name                          = "dcosPrivateAgentMgmtIF${count.index}-0"
     location                      = "${azurerm_resource_group.dcos.location}"
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
-    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_size, "false" )}"
-    count                         = "${var.agent_private_count}"
+    // JZ - Disabled b/c you can't mix AN and non-AN VMs in the same avail. set
+    // Would require a complete cluster rebuild.
+    //enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_size, "false" )}"
+    count                           = "${var.agent_private_count}"
 
     ip_configuration {
         name                                    = "privateAgentMgmtIPConfig"
@@ -47,8 +51,10 @@ resource "azurerm_network_interface" "dcosPrivateAgentStorage" {
     name                          = "dcosPrivateAgentStorageIF${count.index}-0"
     location                      = "${azurerm_resource_group.dcos.location}"
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
-    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_size, "false" )}"
-    count                         = "${var.agent_private_count}"
+    // JZ - Disabled b/c you can't mix AN and non-AN VMs in the same avail. set
+    // Would require a complete cluster rebuild.
+    //enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_size, "false" )}"
+    count                           = "${var.agent_private_count}"
 
     ip_configuration {
         name                                    = "privateAgentStorageIPConfig"
@@ -143,10 +149,6 @@ resource "azurerm_managed_disk" "private_agent_log" {
     disk_size_gb         = "${var.io_offload_disk_size}"
     count                = "${var.agent_private_count}"
 
-    lifecycle {
-        prevent_destroy = true
-    }
-
     tags {
         environment = "${var.instance_name}"
     }
@@ -168,10 +170,6 @@ resource "azurerm_managed_disk" "private_agent_docker" {
     disk_size_gb         = "${var.io_offload_disk_size}"
     count                = "${var.agent_private_count}"
 
-    lifecycle {
-        prevent_destroy = true
-    }
-
     tags {
         environment = "${var.instance_name}"
     }
@@ -192,10 +190,6 @@ resource "azurerm_managed_disk" "private_agent_mesos" {
     create_option        = "Empty"
     disk_size_gb         = "${var.mesos_slave_disk_size}"
     count                = "${var.agent_private_count}"
-
-    lifecycle {
-        prevent_destroy = true
-    }
 
     tags {
         environment = "${var.instance_name}"
