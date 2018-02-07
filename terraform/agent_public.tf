@@ -232,7 +232,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
     # Storage for /var/lib/docker
     storage_data_disk {
         name              = "dcosPublicDockerDisk-${count.index}"
-        caching           = "None"
+        caching           = "ReadOnly"
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
@@ -242,7 +242,7 @@ resource "azurerm_virtual_machine" "dcosPublicAgent" {
     # Storage for /var/lib/mesos/slave
     storage_data_disk {
         name              = "dcosPublicMesosDisk-${count.index}"
-        caching           = "None"
+        caching           = "ReadOnly"
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.mesos_slave_disk_size}"

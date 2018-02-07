@@ -8,14 +8,98 @@
 # License: See included LICENSE.md
 #
 
-data "template_file" "coreos_private_ignition" {
-    template = "${file( "${path.module}/files/agent_setup.ign.tpl" ) }"
-    count    = "${var.agent_private_count}"
-    vars = {
-        cluster_name = "${azurerm_resource_group.dcos.name}"
-        my_ip        = "${azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address[ count.index ] }"
-        vm_hostname  = "dcosprivateagent${count.index}"
+locals {
+    private_my_ip = "${azurerm_network_interface.dcosPrivateAgentIF0.*.private_ip_address}"
+}
+
+data "ignition_file" "private_agent_hosts" {
+    count      = "${var.agent_private_count}"
+    filesystem = "root"
+    path       = "/etc/hosts"
+    mode       = 420
+    content {
+        content = <<EOF
+127.0.0.1   localhost
+::1         localhost
+${local.private_my_ip[ count.index ]}    dcosprivateagent${count.index}
+EOF
     }
+}
+
+/**
+ * Mount the lun2 data disk on /var/log
+ */
+data "ignition_systemd_unit" "private_agent_mount_var_log" {
+    name    = "var-log.mount"
+    enabled = true
+    content = <<EOF
+[Unit]
+Before=local-fs.target
+[Mount]
+What=/dev/disk/azure/scsi1/lun2
+Where=/var/log
+Type=xfs
+[Install]
+WantedBy=local-fs.target
+EOF
+}
+
+/**
+ * Mount the lun3 data disk on /var/lib/docker
+ */
+data "ignition_systemd_unit" "private_agent_mount_var_lib_docker" {
+    name    = "var-lib-docker.mount"
+    enabled = true
+    content = <<EOF
+[Unit]
+Before=local-fs.target
+[Mount]
+What=/dev/disk/azure/scsi1/lun3
+Where=/var/lib/docker
+Type=xfs
+[Install]
+WantedBy=local-fs.target
+EOF
+}
+
+/**
+ * Mount the lun4 data disk on /var/lib/mesos/slave
+ */
+data "ignition_systemd_unit" "private_agent_mount_var_lib_mesos_slave" {
+    name    = "var-lib-mesos-slave.mount"
+    enabled = true
+    content = <<EOF
+[Unit]
+Before=local-fs.target
+[Mount]
+What=/dev/disk/azure/scsi1/lun4
+Where=/var/lib/mesos/slave
+Type=xfs
+[Install]
+WantedBy=local-fs.target
+EOF
+}
+
+data "ignition_config" "private_agent" {
+    count   = "${var.agent_private_count}"
+    filesystems = [
+        "${data.ignition_filesystem.lun2.id}",
+        "${data.ignition_filesystem.lun3.id}",
+        "${data.ignition_filesystem.lun4.id}",
+    ]
+    files = [
+        "${data.ignition_file.env_profile.id}",
+        "${data.ignition_file.tcp_keepalive.id}",
+        "${data.ignition_file.private_agent_hosts.*.id[ count.index ]}",
+        "${data.ignition_file.azure_disk_udev_rules.id}"
+    ]
+    systemd = [
+        "${data.ignition_systemd_unit.mask_locksmithd.id}",
+        "${data.ignition_systemd_unit.mask_update_engine.id}",
+        "${data.ignition_systemd_unit.private_agent_mount_var_log.id}",
+        "${data.ignition_systemd_unit.private_agent_mount_var_lib_docker.id}",
+        "${data.ignition_systemd_unit.private_agent_mount_var_lib_mesos_slave.id}",
+    ]
 }
 
 # The first - eth0 - network interface for the Private agents
@@ -132,6 +216,80 @@ resource "azurerm_managed_disk" "portworxjournaldisk" {
     }
 }
 
+/*
+ * These are created separately instead of inline with the VM
+ * b/c Terraform and Azure behave better on recreate that way.
+ *
+ * This is an extra data disk attached to the VMs.
+ *
+ */
+resource "azurerm_managed_disk" "private_agent_log" {
+    name                 = "dcosPrivateLogDisk--${count.index}"
+    location             = "${azurerm_resource_group.dcos.location}"
+    resource_group_name  = "${azurerm_resource_group.dcos.name}"
+    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+    create_option        = "Empty"
+    disk_size_gb         = "${var.io_offload_disk_size}"
+    count                = "${var.agent_private_count}"
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags {
+        environment = "${var.instance_name}"
+    }
+}
+
+/*
+ * These are created separately instead of inline with the VM
+ * b/c Terraform and Azure behave better on recreate that way.
+ *
+ * This is an extra data disk attached to the VMs.
+ *
+ */
+resource "azurerm_managed_disk" "private_agent_docker" {
+    name                 = "dcosPrivateDockerDisk--${count.index}"
+    location             = "${azurerm_resource_group.dcos.location}"
+    resource_group_name  = "${azurerm_resource_group.dcos.name}"
+    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+    create_option        = "Empty"
+    disk_size_gb         = "${var.io_offload_disk_size}"
+    count                = "${var.agent_private_count}"
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags {
+        environment = "${var.instance_name}"
+    }
+}
+
+/*
+ * These are created separately instead of inline with the VM
+ * b/c Terraform and Azure behave better on recreate that way.
+ *
+ * This is an extra data disk attached to the VMs.
+ *
+ */
+resource "azurerm_managed_disk" "private_agent_mesos" {
+    name                 = "dcosPrivateMesosDisk--${count.index}"
+    location             = "${azurerm_resource_group.dcos.location}"
+    resource_group_name  = "${azurerm_resource_group.dcos.name}"
+    storage_account_type = "${lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" )}"
+    create_option        = "Empty"
+    disk_size_gb         = "${var.mesos_slave_disk_size}"
+    count                = "${var.agent_private_count}"
+
+    lifecycle {
+        prevent_destroy = true
+    }
+
+    tags {
+        environment = "${var.instance_name}"
+    }
+}
 
 resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     name                          = "dcosprivateagent${count.index}"
@@ -248,6 +406,36 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         lun               = 1
     }
 
+    # Storage for /var/log
+    storage_data_disk {
+        name              = "dcosPrivateLogDisk-${count.index}"
+        caching           = "None"
+        create_option     = "Attach"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.io_offload_disk_size}"
+        lun               = 2
+    }
+
+    # Storage for /var/lib/docker
+    storage_data_disk {
+        name              = "dcosPrivateDockerDisk-${count.index}"
+        caching           = "ReadOnly"
+        create_option     = "Attach"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.io_offload_disk_size}"
+        lun               = 3
+    }
+
+    # Storage for /var/lib/mesos/slave
+    storage_data_disk {
+        name              = "dcosPrivateMesosDisk-${count.index}"
+        caching           = "ReadOnly"
+        create_option     = "Attach"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.mesos_slave_disk_size}"
+        lun               = 4
+    }
+
     // PX Data disks are a sequential load and should not be cached
     // b/c the Read Cache will count against your cached iops and that
     // is not necessary.
@@ -258,7 +446,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         managed_disk_id   = "${ azurerm_managed_disk.portworxjournaldisk.*.id[ count.index ] }"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.extra_disk_size}"
-        lun               = 2
+        lun               = 5
     }
 
     os_profile {
@@ -271,7 +459,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         # However, according to CoreOS, their Ignition format is preferred.
         # cloud-init on Azure appears to be the deprecated coreos-cloudinit
         # Therefore we are going to try ignition.
-        custom_data    = "${ data.template_file.coreos_private_ignition.*.rendered[ count.index ] }"
+        custom_data    = "${ data.ignition_config.private_agent.*.rendered[ count.index ] }"
     }
 
     os_profile_linux_config {

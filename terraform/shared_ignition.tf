@@ -112,7 +112,7 @@ data "ignition_filesystem" "lun2" {
 }
 
 /**
- * Format /dev/disk/azure/scsi1/lun2 with XFS filesystem.
+ * Format /dev/disk/azure/scsi1/lun3 with XFS filesystem.
  *
  * We don't know here which of the LUNs is /dev/sdX
  *
@@ -127,6 +127,26 @@ data "ignition_filesystem" "lun2" {
 data "ignition_filesystem" "lun3" {
     mount {
         device = "/dev/disk/by-path/acpi-VMBUS:01-scsi-0:0:0:3"
+        format = "xfs"
+    }
+}
+
+/**
+ * Format /dev/disk/azure/scsi1/lun4 with XFS filesystem.
+ *
+ * We don't know here which of the LUNs is /dev/sdX
+ *
+ * Note that for ignition ONLY the number of disks matters.
+ *
+ * This is because the Azure Udev rules won't have yet named things
+ * properly. -- The implication is that the order of sdc, sdd, sde
+ * might change. This is an Azure issue.
+ *
+ * The systemd mount units mount things by the proper names.
+ */
+data "ignition_filesystem" "lun4" {
+    mount {
+        device = "/dev/disk/by-path/acpi-VMBUS:01-scsi-0:0:0:4"
         format = "xfs"
     }
 }

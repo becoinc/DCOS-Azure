@@ -15,14 +15,44 @@ resource "azurerm_availability_set" "largePrivateAgentVMAvailSet" {
     managed             = true
 }
 
-data "template_file" "coreos_private_ignition_lg_agent" {
-    template = "${file( "${path.module}/files/agent_setup.ign.tpl" ) }"
-    count    = "${var.agent_private_large_count}"
-    vars = {
-        cluster_name = "${azurerm_resource_group.dcos.name}"
-        my_ip        = "${azurerm_network_interface.dcosLargePrivateAgentIF0.*.private_ip_address[ count.index ] }"
-        vm_hostname  = "dcoslargeprivateagent${count.index}"
+locals {
+    large_my_ip  = "${azurerm_network_interface.dcosLargePrivateAgentIF0.*.private_ip_address}"
+}
+
+data "ignition_file" "private_agent_lg_hosts" {
+    count      = "${var.agent_private_large_count}"
+    filesystem = "root"
+    path       = "/etc/hosts"
+    mode       = 420
+    content {
+        content = <<EOF
+127.0.0.1   localhost
+::1         localhost
+${local.large_my_ip[ count.index ]}    dcoslargeprivateagent${count.index}
+EOF
     }
+}
+
+data "ignition_config" "private_agent_large" {
+    count   = "${var.agent_private_large_count}"
+    filesystems = [
+        "${data.ignition_filesystem.lun2.id}",
+        "${data.ignition_filesystem.lun3.id}",
+        "${data.ignition_filesystem.lun4.id}",
+    ]
+    files = [
+        "${data.ignition_file.env_profile.id}",
+        "${data.ignition_file.tcp_keepalive.id}",
+        "${data.ignition_file.private_agent_lg_hosts.*.id[ count.index ]}",
+        "${data.ignition_file.azure_disk_udev_rules.id}"
+    ]
+    systemd = [
+        "${data.ignition_systemd_unit.mask_locksmithd.id}",
+        "${data.ignition_systemd_unit.mask_update_engine.id}",
+        "${data.ignition_systemd_unit.private_agent_mount_var_log.id}",
+        "${data.ignition_systemd_unit.private_agent_mount_var_lib_docker.id}",
+        "${data.ignition_systemd_unit.private_agent_mount_var_lib_mesos_slave.id}",
+    ]
 }
 
 # The first - eth0 - network interface for the Private agents
@@ -30,8 +60,7 @@ resource "azurerm_network_interface" "dcosLargePrivateAgentIF0" {
     name                          = "dcosLargePrivateAgentIF${count.index}-0"
     location                      = "${azurerm_resource_group.dcos.location}"
     resource_group_name           = "${azurerm_resource_group.dcos.name}"
-    // TODO - Once the next version ships... use this.
-    //enable_accelerated_networking = false
+    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_large_size, "false" )}"
     count                         = "${var.agent_private_large_count}"
 
     ip_configuration {
@@ -46,10 +75,11 @@ resource "azurerm_network_interface" "dcosLargePrivateAgentIF0" {
 
 # This is the second - eth1 - interface for the private agents.
 resource "azurerm_network_interface" "dcosLargePrivateAgentMgmt" {
-    name                = "dcosLargePrivateAgentMgmtIF${count.index}-0"
-    location            = "${azurerm_resource_group.dcos.location}"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
-    count               = "${var.agent_private_large_count}"
+    name                          = "dcosLargePrivateAgentMgmtIF${count.index}-0"
+    location                      = "${azurerm_resource_group.dcos.location}"
+    resource_group_name           = "${azurerm_resource_group.dcos.name}"
+    count                         = "${var.agent_private_large_count}"
+    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_large_size, "false" )}"
     ip_configuration {
         name                                    = "lgPrivateAgentMgmtIPConfig"
         subnet_id                               = "${azurerm_subnet.dcosMgmt.id}"
@@ -60,10 +90,12 @@ resource "azurerm_network_interface" "dcosLargePrivateAgentMgmt" {
 
 # This is the third - eth2 - interface for the private agents.
 resource "azurerm_network_interface" "dcosLargePrivateAgentStorage" {
-    name                = "dcosLargePrivateAgentStorageIF${count.index}-0"
-    location            = "${azurerm_resource_group.dcos.location}"
-    resource_group_name = "${azurerm_resource_group.dcos.name}"
-    count               = "${var.agent_private_large_count}"
+    name                          = "dcosLargePrivateAgentStorageIF${count.index}-0"
+    location                      = "${azurerm_resource_group.dcos.location}"
+    resource_group_name           = "${azurerm_resource_group.dcos.name}"
+    count                         = "${var.agent_private_large_count}"
+    enable_accelerated_networking = "${lookup( var.vm_type_to_an, var.agent_private_large_size, "false" )}"
+
     ip_configuration {
         name                                    = "lgPrivateAgentStorageIPConfig"
         subnet_id                               = "${azurerm_subnet.dcosStorageData.id}"
@@ -200,7 +232,7 @@ resource "azurerm_virtual_machine" "dcosLargePrivateAgent" {
         publisher = "${var.image["publisher"]}"
         offer     = "${var.image["offer"]}"
         sku       = "${var.image["sku"]}"
-        version   = "${var.image["version"]}"
+        version   = "1632.2.1" //"${var.image["version"]}"
     }
 
     storage_os_disk {
@@ -231,6 +263,36 @@ resource "azurerm_virtual_machine" "dcosLargePrivateAgent" {
         lun               = 1
     }
 
+    # Storage for /var/log
+    storage_data_disk {
+        name              = "dcosLgPrivateLogDisk-${count.index}"
+        caching           = "None"
+        create_option     = "Empty"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.io_offload_disk_size}"
+        lun               = 2
+    }
+
+    # Storage for /var/lib/docker
+    storage_data_disk {
+        name              = "dcosLgPrivateDockerDisk-${count.index}"
+        caching           = "ReadOnly"
+        create_option     = "Empty"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.io_offload_disk_size}"
+        lun               = 3
+    }
+
+    # Storage for /var/lib/mesos/slave
+    storage_data_disk {
+        name              = "dcosLgPrivateMesosDisk-${count.index}"
+        caching           = "ReadOnly"
+        create_option     = "Empty"
+        managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_private_size, "Premium_LRS" ) }"
+        disk_size_gb      = "${var.mesos_slave_disk_size}"
+        lun               = 4
+    }
+
     os_profile {
         computer_name  = "dcoslargeprivateagent${count.index}"
         admin_username = "${var.vm_user}"
@@ -241,7 +303,7 @@ resource "azurerm_virtual_machine" "dcosLargePrivateAgent" {
         # However, according to CoreOS, their Ignition format is preferred.
         # cloud-init on Azure appears to be the deprecated coreos-cloudinit
         # Therefore we are going to try ignition.
-        custom_data    = "${ data.template_file.coreos_private_ignition_lg_agent.*.rendered[ count.index ] }"
+        custom_data    = "${ data.ignition_config.private_agent_large.*.rendered[ count.index ] }"
     }
 
     os_profile_linux_config {
