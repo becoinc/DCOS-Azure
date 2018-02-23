@@ -1,4 +1,4 @@
-Deploy DC/OS 1.10.4 running CoreOS on Microsoft Azure using Terraform
+Deploy DC/OS 1.10.5 running CoreOS on Microsoft Azure using Terraform
 ==================
 
 ![](./resources/imgs/ninjaterracat.png)

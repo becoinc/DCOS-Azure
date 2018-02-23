@@ -50,10 +50,10 @@ variable "instance_config" {
 module "dcos" {
    source = "../../terraform"
    # Configuration variables for DC/OS on Azure
-   dcos_download_url    = "https://downloads.dcos.io/dcos/stable/1.9.2/dcos_generate_config.sh"
+   dcos_download_url    = "https://downloads.dcos.io/dcos/stable/1.10.5/dcos_generate_config.sh"
    resource_base_name   = "my_dcos_"
    resource_suffix      = "${var.instance_config["instance_name"]}"
-   # We use the default stable for v1.9.1 right now.
+   # We use the default stable for v1.10.5 right now.
    #dcos_download_url    = "https://downloads.dcos.io/dcos/stable/dcos_generate_config.sh"
    bootstrap_private_key_path = "${var.instance_config["bootstrap_private_key_path"]}"
    bootstrap_public_key_path  = "${var.instance_config["bootstrap_public_key_path"]}"
