@@ -77,10 +77,11 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         "${ azurerm_network_interface.dcosPrivateAgentPri.*.id[ count.index ] }",
         "${ azurerm_network_interface.dcosPrivateAgentMgmt.*.id[ count.index ] }",
     ]
-    vm_size                       = "${var.agent_size}"
-    availability_set_id           = "${azurerm_availability_set.dcosPrivateAgentPool.id}"
-    delete_os_disk_on_termination = true
-    count                         = "${var.agent_count}"
+    vm_size                          = "${var.agent_size}"
+    availability_set_id              = "${azurerm_availability_set.dcosPrivateAgentPool.id}"
+    delete_os_disk_on_termination    = true
+    delete_data_disks_on_termination = true
+    count                            = "${var.agent_count}"
 
     lifecycle {
         ignore_changes  = [ "admin_password" ]
