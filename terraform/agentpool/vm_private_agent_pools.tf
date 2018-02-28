@@ -12,7 +12,7 @@ locals {
     // This turns var.extra_pool_names and var.include_in_default_pool and var.extra_attributes
     // into:
     // agentpool:x,agentpool:y,agentpool:default,attr:val,...
-    mesos_attributes = "${join( ",", 
+    mesos_attributes = "${join( ",",
         compact(
             concat(
                 formatlist( "agentpool:%s",
