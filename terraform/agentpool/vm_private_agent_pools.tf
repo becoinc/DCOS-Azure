@@ -192,7 +192,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     }
 
     storage_data_disk {
-        name              = "dcos${var.modname}Volume0"
+        name              = "dcos${var.modname}Volume0-${count.index}"
         caching           = "ReadOnly"
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_size, "Premium_LRS" ) }"
