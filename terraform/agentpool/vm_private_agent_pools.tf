@@ -64,7 +64,6 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
     availability_set_id           = "${azurerm_availability_set.dcosPrivateAgentPool.id}"
     delete_os_disk_on_termination = true
     count                         = "${var.agent_count}"
-    depends_on                    = ["azurerm_virtual_machine.master"]
 
     lifecycle {
         ignore_changes  = [ "admin_password" ]
