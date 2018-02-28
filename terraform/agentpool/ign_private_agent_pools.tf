@@ -58,6 +58,24 @@ WantedBy=local-fs.target
 EOF
 }
 
+/**
+ * Mount the lun4 data disk on /dcos/volume0
+ */
+data "ignition_systemd_unit" "dcos_volume0" {
+    name    = "dcos-volume0.mount"
+    enabled = true
+    content = <<EOF
+[Unit]
+Before=local-fs.target
+[Mount]
+What=/dev/disk/azure/scsi1/lun4
+Where=/dcos/volume0
+Type=xfs
+[Install]
+WantedBy=local-fs.target
+EOF
+}
+
 data "ignition_config" "private_agent_pool" {
     count   = "${var.agent_count}"
     filesystems = [
@@ -70,7 +88,7 @@ data "ignition_config" "private_agent_pool" {
         "${data.ignition_file.env_profile.id}",
         "${data.ignition_file.tcp_keepalive.id}",
         "${data.ignition_file.private_agent_hosts.*.id[ count.index ]}",
-        "${data.ignition_file.azure_disk_udev_rules.id}"
+        "${data.ignition_file.azure_disk_udev_rules.id}",
     ]
     systemd = [
         "${data.ignition_systemd_unit.mask_locksmithd.id}",
@@ -78,5 +96,13 @@ data "ignition_config" "private_agent_pool" {
         "${data.ignition_systemd_unit.mount_var_log.id}",
         "${data.ignition_systemd_unit.private_agent_mount_var_lib_docker.id}",
         "${data.ignition_systemd_unit.private_agent_mount_var_lib_mesos_slave.id}",
+        "${data.ignition_systemd_unit.dcos_volume0.id}",
     ]
+}
+
+# Dump the contents of the ignition file out for debugging
+resource "local_file" "agent_ignition" {
+    count    = "${var.agent_count}"
+    content  = "${data.ignition_config.private_agent_pool.*.rendered[ count.index ]}"
+    filename = "${path.cwd}/outputs/${var.modname}_agent_ignition-${count.index}.ign"
 }

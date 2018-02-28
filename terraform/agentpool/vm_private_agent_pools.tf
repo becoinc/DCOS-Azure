@@ -8,6 +8,23 @@
 # License: See included LICENSE.md
 #
 
+locals {
+    // This turns var.extra_pool_names and var.include_in_default_pool and var.extra_attributes
+    // into:
+    // agentpool:x,agentpool:y,agentpool:default,attr:val,...
+    mesos_attributes = "${join( ",", 
+        compact(
+            concat(
+                formatlist( "agentpool:%s",
+                    compact(
+                        concat( var.extra_pool_names, list( var.include_in_default_pool == true ? "default" : "" ) ) ) ), var.extra_attributes ) ) )}"
+}
+
+resource "local_file" "mesos_attrs" {
+    content  = "${local.mesos_attributes}"
+    filename = "${path.cwd}/outputs/${var.modname}_mesos_attr.ign"
+}
+
 /*
  * Each pools of agents gets its own avail set.
  */
@@ -120,7 +137,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
             "sudo chmod 644 /etc/systemd/network/50-docker.network",
             "sudo systemctl restart systemd-networkd",
             "chmod 755 /opt/dcos/install_lg_private_agent.sh",
-            "cd /opt/dcos && bash install_lg_private_agent.sh '172.16.0.8' 'slave'"
+            "cd /opt/dcos && bash install_lg_private_agent.sh '172.16.0.8' 'slave' '${local.mesos_attributes}'"
         ]
     }
 
