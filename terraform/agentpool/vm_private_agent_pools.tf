@@ -152,7 +152,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
-        lun               = 0
+        lun               = 1
     }
 
     # Storage for /var/lib/docker
@@ -162,7 +162,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.io_offload_disk_size}"
-        lun               = 1
+        lun               = 2
     }
 
     # Storage for /var/lib/mesos/slave
@@ -172,7 +172,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.mesos_slave_disk_size}"
-        lun               = 2
+        lun               = 3
     }
 
     storage_data_disk {
@@ -181,7 +181,7 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
         create_option     = "Empty"
         managed_disk_type = "${ lookup( var.vm_type_to_os_disk_type, var.agent_size, "Premium_LRS" ) }"
         disk_size_gb      = "${var.data_disk_size}"
-        lun               = 3
+        lun               = 4
     }
 
     os_profile {
