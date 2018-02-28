@@ -22,7 +22,7 @@ EOF
     }
 }
 
-data "ignition_config" "private_agent_large" {
+data "ignition_config" "private_agent_pool" {
     count   = "${var.agent_private_large_count}"
     filesystems = [
         "${data.ignition_filesystem.lun2.id}",

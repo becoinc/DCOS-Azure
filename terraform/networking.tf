@@ -25,14 +25,6 @@ resource "azurerm_virtual_network" "dcos" {
     }
 }
 
-output "dcos_vnet_name" {
-    value = "${azurerm_virtual_network.dcos.name}"
-}
-
-output "dcos_vnet_id" {
-    value = "${azurerm_virtual_network.dcos.id}"
-}
-
 resource "azurerm_subnet" "dcosmaster" {
     name                      = "dcos-masterSubnet"
     resource_group_name       = "${azurerm_resource_group.dcos.name}"
