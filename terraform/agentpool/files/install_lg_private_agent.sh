@@ -4,6 +4,10 @@ BOOTSTRAP_URL=$1
 ROLE=$2
 ATTR=$3
 
+echo "Bootstrap URL: ${BOOTSTRAP_URL}"
+echo "Role: ${ROLE}"
+echo "Mesos Attributes: ${ATTR}"
+
 mkdir /tmp/dcos
 cd /tmp/dcos
 curl -O http://${BOOTSTRAP_URL}/dcos_install.sh
