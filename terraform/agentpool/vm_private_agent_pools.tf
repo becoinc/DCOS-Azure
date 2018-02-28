@@ -138,7 +138,24 @@ resource "azurerm_virtual_machine" "dcosPrivateAgent" {
             "sudo chmod 644 /etc/systemd/network/50-docker.network",
             "sudo systemctl restart systemd-networkd",
             "chmod 755 /opt/dcos/install_lg_private_agent.sh",
-            "cd /opt/dcos && bash install_lg_private_agent.sh '172.16.0.8' 'slave' ${local.mesos_attributes}"
+            "cd /opt/dcos && bash install_lg_private_agent.sh '172.16.0.8' 'slave'",
+        ]
+    }
+
+    provisioner "file" {
+        destination = "/tmp/mesos-slave-common"
+        content     = "MESOS_ATTRIBUTES=${local.mesos_attributes}"
+    }
+
+    /*
+     * Provision the attributes.
+     */
+    provisioner "remote-exec" {
+        inline = [
+            "sudo mv /tmp/mesos-slave-common /var/lib/dcos/mesos-slave-common",
+            "sudo chown root:root /var/lib/dcos/mesos-slave-common",
+            "sudo rm -f /var/lib/mesos/slave/meta/slaves/latest",
+            "sudo systemctl restart dcos-mesos-slave.service",
         ]
     }
 
