@@ -14,7 +14,7 @@ resource "null_resource" "dcos_metrics_prometheus_master" {
         "azurerm_virtual_machine.master"
     ]
 
-    count = "${azurerm_virtual_machine.master.count}"
+    count = "${var.master_count}"
 
     connection {
         type         = "ssh"

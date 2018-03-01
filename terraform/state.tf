@@ -12,7 +12,6 @@ resource "azurerm_storage_account" "dcos" {
   name                      = "${replace("sa${var.resource_base_name}${var.resource_suffix}","_",0)}"
   resource_group_name       = "${azurerm_resource_group.dcos.name}"
   location                  = "${azurerm_resource_group.dcos.location}"
-  account_type              = "Standard_LRS"
   account_tier              = "Standard"
   account_replication_type  = "LRS"
   enable_blob_encryption    = true

@@ -108,8 +108,15 @@ variable "agent_private_count" {
     description = "The number of private agent VMs."
 }
 
+/**
+ * We use a default P20 for the OS disk in order to get 2300 IOPS
+ *
+ * Otherwise logging and other system tasks that use small (4k)
+ * block sizes seem to drag everything else down.
+ *
+ */
 variable os_disk_size {
-    default = 64
+    default = 512
     description = "The size in GB of the Operating System Disks."
 }
 
@@ -130,6 +137,16 @@ variable data_disk_size {
 variable extra_disk_size {
     default = 512
     description = "The size in GB of the Attached Portworx Journal Disk - Only Private Agents have this data disk."
+}
+
+variable io_offload_disk_size {
+    default     = 128
+    description = "The disk size used for disks which are attached to offload the os disk"
+}
+
+variable mesos_slave_disk_size {
+    default     = 512
+    description = "The disk size used for disks which are attached to offload the os disk - Mesos Slave path (/var/lib/mesos/slave)."
 }
 
 variable "agent_private_size" {

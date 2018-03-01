@@ -1,4 +1,4 @@
-Deploy DC/OS 1.10.0 running CoreOS on Microsoft Azure using Terraform
+Deploy DC/OS 1.10.5 running CoreOS on Microsoft Azure using Terraform
 ==================
 
 ![](./resources/imgs/ninjaterracat.png)
@@ -25,7 +25,7 @@ VM size and/or VM count.
 * It is assumed that you have a functioning Azure client installed. You can do so [here](https://github.com/Azure/azure-cli)
 
 * Install [Terraform](https://www.terraform.io/downloads.html). This was
-tested with `v0.10.7` on macOS Sierra. Using `v0.3.1` of the AzureRM provider.
+tested with `v0.11.1` on macOS Sierra. Using `v1.1.1` of the AzureRM provider.
 
 * Create credentials for Terraform to access Azure.
 To do so, you will need to following environment variables :
@@ -67,8 +67,7 @@ that form a full cloud system.
 the whole repo. See the docs for [terraform get](https://www.terraform.io/docs/commands/get.html).
 
 * Ensure your `main.tf` calls out compatible versions of the providers
-for this module. We use `azurerm` and `template` and tested with
-version `~> 0.1` of each. See the example `main.tf` for a provider block.
+for this module. See the example `main.tf` for the relevant provider blocks.
 
 * Setup a `instancename.tfvars` file that overrides the appropriate project variables
 for the particular instance you are creating. This allows you to have
@@ -134,6 +133,15 @@ a terraform problem. More trials needed.
 
 * Changing the number of masters requires editing of the bootstrap.sh script.
 This really should be a parameter.
+
+# Design Notes #
+
+These machines are configured with a number of attached disks. These
+are mostly tested with `Premium_SSDs`. The OS disks are assumed to be
+on LUN0 and attached disks start after that.
+
+Azure has a number of idiosyncrasies with its disk setup that make it
+hard to get well-defined disk names early in the boot process. 
 
 # Operations and Maintenance #
 

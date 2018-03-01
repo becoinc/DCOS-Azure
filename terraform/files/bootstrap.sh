@@ -41,7 +41,7 @@ EOF
 cat <<'EOF' > "/opt/dcos/genconf/ip-detect"
 #!/usr/bin/env bash
 set -o nounset -o errexit
-ip route get 1 | awk '{print $NF;exit}'
+ip route get 1|tr -s ' '|cut -f 7 -d ' '|tr -s '\n'
 EOF
 
 # curl -O https://downloads.dcos.io/dcos/stable/dcos_generate_config.sh
